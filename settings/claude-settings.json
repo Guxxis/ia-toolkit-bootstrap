@@ -1,0 +1,16 @@
+{
+  "theme": "dark",
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"$(date '+%Y-%m-%d %H:%M:%S') | session_end | pwd=$(pwd)\" >> ~/Workspace/ia-toolkit/.logs/sessions.log"
+          }
+        ]
+      }
+    ]
+  }
+}
