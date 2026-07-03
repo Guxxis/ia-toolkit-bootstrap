@@ -8,6 +8,16 @@
         "OBSIDIAN_BASE_URL": "https://127.0.0.1:27124",
         "NODE_TLS_REJECT_UNAUTHORIZED": "0"
       }
+    },
+    "jira": {
+      "type": "stdio",
+      "command": "{{HOME}}/.local/bin/mcp-atlassian",
+      "args": [
+        "--jira-url", "{{JIRA_URL}}",
+        "--jira-username", "{{JIRA_USERNAME}}",
+        "--jira-token", "{{JIRA_API_TOKEN}}"
+      ],
+      "env": {}
     }
   }
 }

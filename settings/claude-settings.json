@@ -1,15 +1,19 @@
 {
-  "theme": "dark",
+  "model": "sonnet",
+  "env": {
+    "CLAUDE_AFK_TIMEOUT_MS": "2147483647"
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash $HOME/.claude/statusline-command.sh"
+  },
+  "theme": "dark-ansi",
+  "preferredNotifChannel": "terminal_bell",
   "hooks": {
-    "Stop": [
+    "PreToolUse": [
       {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "echo \"$(date '+%Y-%m-%d %H:%M:%S') | session_end | pwd=$(pwd)\" >> ~/Workspace/ia-toolkit/.logs/sessions.log"
-          }
-        ]
+        "matcher": "Bash",
+        "hooks": [{ "type": "command", "command": "rtk hook claude" }]
       }
     ]
   }
