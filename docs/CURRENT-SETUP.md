@@ -1,6 +1,16 @@
-# Snapshot da configuração atual do Claude Code (WSL root, 2026-07-03)
+# Snapshot da configuração atual do Claude Code (WSL root, 2026-08-31)
 
-Este documento existe porque o ambiente atual roda o Claude Code CLI como **usuário `root`** dentro do WSL, o que não é o ideal (sem isolamento de usuário, `HOME=/root`, dependência de pontes SSH frágeis). Antes de resetar o WSL e reconstruir o ambiente do zero (provavelmente com um usuário não-root), este arquivo captura **tudo que está configurado hoje**, o que já foi versionado neste repositório e o que ainda precisa de ação manual depois de um reset.
+Atualização do snapshot de 2026-07-03 (commit `44bb877`), feita antes de uma formatação do PC. Continua rodando como **`root`** no WSL (a recomendação da seção 8 de sair do root não foi executada ainda). Este arquivo captura tudo que está configurado hoje, o que já foi versionado neste repo e o que precisa de ação manual pós-reset.
+
+## 0. A cadeia completa de reconstrução
+
+Este repo é só a **Fase 2** (IA). A ordem real é:
+
+1. **`wsl-ansible-bootstrap`** (`Guxxis/wsl-ansible-bootstrap`, repo próprio, com remote no GitHub) — cria o WSL do zero: `bootstrap.sh` instala Ansible e roda `playbook.yaml` com as roles `system` (systemd, Zsh, Node 24 via NodeSource, clientes de banco, mount automático do Google Drive `G:` em `/mnt/g` via fstab), `ssh-relay` (ponte socat+npiperelay para o SSH Agent do Windows), `docker`, `db` e **`ia-config`**.
+2. A role **`ia-config`** é o elo: instala o Claude CLI globalmente (`npm install -g @anthropic-ai/claude-code`) e depois clona/atualiza `git@github.com:Guxxis/ia-toolkit-bootstrap.git` em `~/Workspace/ia-toolkit-bootstrap` e roda o `setup.sh` dele.
+3. **`ia-toolkit-bootstrap`** (este repo) — o que está documentado no restante deste arquivo.
+
+`wsl-ansible-bootstrap` é IaC de verdade (Ansible), então não tem um "CURRENT-SETUP.md" próprio — o código já é a documentação. Único ponto de atenção: `playbook.yaml` tem `git_email: "gustavo.silva97@hotmail.com"` hardcoded nas vars — confirme se é o e-mail que você quer usar antes de rodar num WSL novo.
 
 ## 1. Onde cada coisa mora hoje
 
@@ -9,79 +19,74 @@ Este documento existe porque o ambiente atual roda o Claude Code CLI como **usu�
 | CLAUDE.md global | `~/.claude/CLAUDE.md` (`@RTK.md`) | ✅ `claude-md/CLAUDE.md` |
 | Instruções do RTK | `~/.claude/RTK.md` | ✅ `claude-md/RTK.md` |
 | CLAUDE.md do workspace principal | `/root/CLAUDE.md` (Obsidian + Jira) | ✅ `claude-md/workspace-CLAUDE.md` |
+| Regra global Context7 | `~/.claude/rules/context7.md` | ✅ `rules/context7.md` (novo desde jul/26) |
 | Settings globais | `~/.claude/settings.json` | ✅ `settings/claude-settings.json` |
 | Statusline | `~/.claude/statusline-command.sh` | ✅ `settings/statusline-command.sh` |
-| Skills customizadas | `~/.claude/commands/{diagnostic-creator,infra-planner}/SKILL.md` | ✅ `skills/diagnostic-creator/`, `skills/infra-planner/` |
+| Skills autorais | `~/.claude/commands/{diagnostic-creator,infra-planner,jira-ticket-creator}/SKILL.md` | ✅ `skills/` |
 | Config global do Claude Code (`.claude.json`) | symlink para `/mnt/c/Users/gustavo.goncalves/projetos/workspace/config/claude/.claude.json` (fora do WSL, no NTFS) | ⚠️ não versionado — ver seção 4 |
-| Permissões acumuladas | `~/.claude/settings.local.json` | ❌ não versionado de propósito — ver seção 5 |
-| Memória automática | `~/.claude/projects/-root/memory/` | ❌ não versionado — ver seção 6 |
-| RTK (binário + filtros) | `~/.local/bin/rtk` (v0.43.0), `~/.config/rtk/filters.toml` | ✅ instalado via `setup.sh`, filtros só com exemplos comentados (nada custom a preservar) |
-| MCP Obsidian | registrado no projeto `/root` dentro do `.claude.json` | ✅ template em `mcp/config.template.json` |
-| MCP Jira | registrado no projeto `/root` dentro do `.claude.json` (com token em texto puro!) | ⚠️ template em `mcp/config.template.json`, token NUNCA commitado |
-| Marketplace de plugins | `claude-plugins-official` (oficial, auto-registrado) | ❌ não precisa versionar — o Claude Code registra sozinho |
+| Permissões acumuladas | `~/.claude/settings.local.json` | ❌ de propósito — ver seção 5 |
+| Memória automática | `~/.claude/projects/-root/memory/` (86 arquivos hoje) | ❌ não versionado — ver seção 6 |
+| RTK (binário + filtros) | `~/.local/bin/rtk` (v0.43.0, sem mudança desde jul) | ✅ instalado via `setup.sh` |
+| MCP Obsidian | projeto `/root` no `.claude.json`, pacote **`@blacksmithers/obsidian-forge-mcp`** apontando pro path do vault | ✅ template em `mcp/config.template.json` (pacote trocado desde jul — era `obsidian-mcp-server` + API key REST) |
+| MCP Jira | projeto `/root` no `.claude.json` (token em texto puro!) | ⚠️ template em `mcp/config.template.json`, token NUNCA commitado |
+| MCP Context7 | **global** no `.claude.json` (`.mcpServers`, não dentro de `projects`), HTTP + `CONTEXT7_API_KEY` em texto puro | ⚠️ novo desde jul; template em `mcp/config.template.json`, key NUNCA commitada |
+| Plugin ponytail | marketplace `dietrichgebert/ponytail` (`~/.claude/plugins/`), habilitado em `settings.json.enabledPlugins` | ❌ reinstalável — ver seção 3 |
+| Marketplace oficial | `claude-plugins-official` (auto-registrado) | ❌ não precisa versionar |
 
 ## 2. RTK — Rust Token Killer
 
-Proxy de CLI que filtra/compacta saída de comandos (git, grep, find, ls, etc.) antes de chegar no contexto do modelo. Hoje é acionado via hook `PreToolUse` em `settings.json` (`rtk hook claude` em todo `Bash`), e o `CLAUDE.md` global importa `RTK.md` para ensinar o agente a usar `rtk <comando>` diretamente em vez do comando nativo.
+Sem mudanças desde jul/26 (ainda v0.43.0). Ver README/`claude-md/RTK.md`.
 
-- Repo: https://github.com/rtk-ai/rtk
-- Instalação: `curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh` (instala em `~/.local/bin/rtk`) — já incluído no `setup.sh`.
-- Config de filtros custom: `~/.config/rtk/filters.toml` (hoje só tem o template comentado, nada para migrar).
+## 3. Skills e plugins
 
-## 3. Skills customizadas (não confundir com skills de terceiros)
+Skills autorais (versionadas em `skills/`, com lógica de negócio do Grupo Ideal Trends):
 
-Skills reais, autorais, com lógica de negócio do Grupo Ideal Trends — por isso versionadas em `skills/`:
+- **`diagnostic-creator`** — diagnósticos pós-incidente no vault Obsidian.
+- **`infra-planner`** — planejamento de infra de projetos novos.
+- **`jira-ticket-creator`** *(nova desde ago/26)* — formaliza pedido/incidente como issue no Jira (projeto DOPS), com aprovação explícita antes de criar.
 
-- **`diagnostic-creator`** — gera diagnósticos técnicos pós-incidente e salva no vault Obsidian (`39_Diagnostics/`).
-- **`infra-planner`** — planeja infraestrutura de projetos novos, lê os repos, consulta o vault e produz Guia + Checklist.
+Hoje vivem em `~/.claude/commands/<nome>/SKILL.md`; o `setup.sh` symlinka para `~/.claude/skills/` (local recomendado atual).
 
-Hoje ambas vivem em `~/.claude/commands/<nome>/SKILL.md` (não em `~/.claude/skills/`) — as duas localizações funcionam no Claude Code atual. O `setup.sh` deste repo symlinka para `~/.claude/skills/`, que é o local recomendado.
-
-**Não versionadas** (não são autorais, são reinstaláveis):
-- `skill-creator`, `opsx`, `openspec-*` — vêm de marketplaces/pacotes oficiais (`openspec` CLI, marketplace `claude-plugins-official`). Depois do reset, reinstale via o mecanismo de plugins do Claude Code ou `npx openspec init`, não precisa copiar arquivo nenhum.
-- As pastas `diagnostic-creator-workspace/` e `infra-planner-workspace/` dentro de `~/.claude/commands/` são artefatos de avaliação (evals) gerados pelo `skill-creator` ao criar as skills acima — lixo de processo, não configuração.
+**Não versionadas** (reinstaláveis):
+- `skill-creator`, `opsx`, `openspec-*`, `context7-mcp` — de marketplaces/pacotes oficiais. Reinstale via mecanismo de plugins do Claude Code, `npx openspec init`, ou deixe o registro do MCP Context7 recriar a skill sozinho.
+- **`ponytail`** *(novo desde ago/26)* — plugin de marketplace (`github:dietrichgebert/ponytail`, v4.8.4). Reinstale com `claude plugin marketplace add dietrichgebert/ponytail && claude plugin install ponytail@ponytail` (o `setup.sh` já tenta fazer isso). Fica registrado em `settings.json` (`enabledPlugins`, `extraKnownMarketplaces`) — por isso o `settings.json` inteiro é versionado, não só um template mínimo.
+- `diagnostic-creator-workspace/`, `infra-planner-workspace/` dentro de `~/.claude/commands/` — lixo de eval do `skill-creator`, não configuração.
 
 ## 4. `.claude.json` — o arquivo mais sensível
 
-O `.claude.json` do usuário fica fisicamente fora do WSL, em `/mnt/c/Users/gustavo.goncalves/projetos/workspace/config/claude/.claude.json`, com `~/.claude.json` sendo um **symlink** para lá. Essa é uma boa prática (sobrevive a reset do WSL), mas o arquivo:
+Continua symlink para `/mnt/c/Users/gustavo.goncalves/projetos/workspace/config/claude/.claude.json` (fora do WSL, sobrevive a reset). Segredos em texto puro hoje:
 
-1. Guarda o **token do Jira em texto puro** dentro de `projects["/root"].mcpServers.jira.args`.
-2. Guarda dados de sessão/telemetria do Claude Code (`oauthAccount`, `machineID`, caches) que não fazem sentido versionar.
+1. **Token do Jira** — `projects["/root"].mcpServers.jira.args` (sem mudança desde jul, ainda não rotacionado).
+2. **API key do Context7** — `mcpServers.context7.headers.CONTEXT7_API_KEY` (novo desde jul, também em texto puro, também nunca deve ir para o git).
+3. Dados de sessão/telemetria (`oauthAccount`, `machineID`, caches) — não versionar.
 
-**Por isso este arquivo nunca deve ir para o git.** Ao reconfigurar do zero:
-
-- Se for manter o mesmo usuário do Windows: o symlink para o caminho no NTFS pode ser recriado (o arquivo em si sobrevive ao reset do WSL, já que mora fora dele). Confirme que o `oauthAccount` ainda é válido; se não, rode `claude login`.
-- Os MCPs (`obsidian`, `jira`) precisam ser re-registrados via `claude mcp add` (o `setup.sh` já faz isso interativamente, pedindo a API key/token na hora — nunca fica hardcoded em lugar nenhum do repo).
-- **Considere rotacionar o token do Jira** na próxima oportunidade, já que ele ficou em texto puro num arquivo de configuração por um bom tempo.
+Ao reconfigurar do zero: recriar o symlink (o arquivo sobrevive fora do WSL), confirmar `oauthAccount` válido (`claude login` se não), re-registrar os 3 MCPs via `claude mcp add` (obsidian e jira em scope de projeto, context7 em `--scope user`) — o `setup.sh` já pede as 3 chaves interativamente. **Considere rotacionar Jira token e Context7 key** na próxima janela de manutenção.
 
 ## 5. `settings.local.json` — permissões acumuladas
 
-Esse arquivo cresce organicamente conforme você aprova `Bash(...)`, MCPs e skills durante o uso normal do Claude Code. Hoje tem ~110 entradas, a maioria comandos pontuais de investigação (curls de diagnóstico, greps específicos) que não fazem sentido "restaurar" — são ruído de sessões passadas, não configuração intencional.
-
-Por isso **não foi versionado neste repo de propósito**. O que vale a pena lembrar de reconfigurar manualmente (ou deixar reconstruir sozinho no uso normal):
-- `enabledMcpjsonServers: ["obsidian"]`
-- Permissões amplas úteis no dia a dia: `Bash(rtk *)`, `Bash(git config *)`, `WebSearch`, `Skill(update-config)`, `mcp__obsidian__*` de leitura.
+Continua não versionado de propósito (hoje ~259 linhas, ruído de sessões passadas). Reautorize por uso normal; vale lembrar `enabledMcpjsonServers: ["obsidian"]` e permissões amplas de uso diário (`Bash(rtk *)`, `WebSearch`, etc.).
 
 ## 6. Memória automática (`~/.claude/projects/-root/memory/`)
 
-O sistema de memória (aprendizados sobre você, feedback, projetos, referências) é local e **não é coberto por este repositório**. Ele será perdido num reset de WSL. Isso é esperado — não é "configuração de ambiente", é histórico de conversas. Se quiser preservar o conteúdo mais importante (ex: os projetos DEVOPS-43, Jumphost, Idealtrack), o caminho natural é migrar esse conhecimento para o vault Obsidian (fonte de verdade duradoura), não para este repo.
+Cresceu de ~15 arquivos (jul/26) para **86 arquivos** (ago/26) — projetos, feedback e referências acumulados de meses de uso operacional (incidentes IDEALPLUS, IdealTrack prod, Jumphost, etc.). Continua não coberta por este repo e será perdida num reset do WSL — esperado, é histórico de conversas, não config de ambiente. Se algo ali for conhecimento que precisa sobreviver de verdade, o caminho é migrar para o vault Obsidian antes do reset, não para este repo.
 
 ## 7. Checklist pós-reset (ordem sugerida)
 
-1. `wsl-ansible-bootstrap` → roles `system`, `ssh-relay`, `docker`, `db` (infra base do WSL).
-2. Role `ia-config` → instala Claude Code CLI global.
-3. `git clone` deste repo (`ia-toolkit-bootstrap`) + `bash setup.sh`:
+1. `wsl-ansible-bootstrap` → `bash bootstrap.sh` (roda todas as roles: `system`, `ssh-relay`, `docker`, `db`).
+2. A role `ia-config` (dentro do mesmo playbook) já instala o Claude CLI e clona + roda o `setup.sh` deste repo automaticamente — não precisa repetir manualmente, mas se for só a parte de IA: `git clone` + `bash setup.sh`, que hoje:
    - instala o `rtk`
-   - instala `CLAUDE.md`/`RTK.md`/statusline em `~/.claude/`
-   - symlinka as skills (`diagnostic-creator`, `infra-planner`) para `~/.claude/skills/`
-   - aplica `settings.json` (se ainda estiver no padrão mínimo)
-   - pede interativamente a API key do Obsidian e o token do Jira para registrar os MCPs
-4. `pipx install mcp-atlassian` (dependência do MCP do Jira, se o `setup.sh` ainda não tiver essa etapa automatizada).
-5. Copiar `claude-md/workspace-CLAUDE.md` para o diretório de trabalho principal (hoje é `/root`; num setup não-root, deve ser a raiz do workspace, ex: `~/Workspace/CLAUDE.md` ou o diretório onde você abre o Claude Code no dia a dia).
-6. `claude login` se necessário.
-7. Confirmar `.claude.json` (ver seção 4) — symlink para fora do WSL ou recriar do zero.
-8. Reautorizar via uso normal as permissões que fizerem sentido (seção 5) — não precisa restaurar tudo de uma vez.
+   - instala `CLAUDE.md`/`RTK.md`/`rules/*.md`/statusline em `~/.claude/`
+   - symlinka as 3 skills autorais para `~/.claude/skills/`
+   - aplica `settings.json` (se ainda estiver no padrão mínimo — hoje ele carrega o plugin ponytail e um bloco `autoMode` grande, então provavelmente vai cair no caminho de merge manual)
+   - pede interativamente as credenciais dos 3 MCPs (Obsidian, Jira, Context7)
+   - registra o marketplace + instala o plugin `ponytail`
+3. `pipx install mcp-atlassian` antes do MCP do Jira, se ainda não automatizado.
+4. Copiar `claude-md/workspace-CLAUDE.md` para o diretório de trabalho principal.
+5. `claude login` se necessário.
+6. Confirmar `.claude.json` (seção 4).
+7. Reautorizar por uso normal as permissões que fizerem sentido (seção 5).
+8. Se quiser preservar conhecimento da memória automática (seção 6), migrar para o vault Obsidian **antes** de reformatar.
 
 ## 8. Recomendação: sair do usuário `root`
 
-A causa raiz de vários dos pontos frágeis acima (ponte SSH não ativa neste shell, `.claude.json` amarrado ao projeto `/root`, `CLAUDE.md` de workspace vivendo em `/root` em vez de um diretório de projeto de verdade) é rodar o Claude Code como `root`. Ao reconstruir o WSL, vale considerar criar um usuário não-root dedicado (o `wsl-ansible-bootstrap` já tem estrutura de roles para isso) e usar `$HOME/Workspace` como raiz — evita side effects de permissão e deixa o `CLAUDE.md` do workspace num lugar mais natural.
+Ainda válida e ainda não executada. Causa raiz de vários pontos frágeis (ponte SSH, `.claude.json` amarrado ao projeto `/root`, `CLAUDE.md` de workspace em `/root`). O `wsl-ansible-bootstrap` já assume um usuário não-root em boa parte do design (`become: false`, `git_email`/`git_name` de usuário), mas hoje ele está sendo executado diretamente como `root` — vale decidir isso antes do próximo reset, não depois.

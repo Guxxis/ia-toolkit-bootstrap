@@ -29,9 +29,12 @@ ia-toolkit-bootstrap/
 │   └── sdd_expert.md
 ├── skills/                       # skills autorais (SKILL.md), symlinked para ~/.claude/skills/
 │   ├── diagnostic-creator/
-│   └── infra-planner/
+│   ├── infra-planner/
+│   └── jira-ticket-creator/
+├── rules/                        # → ~/.claude/rules/*.md (regras globais adicionais)
+│   └── context7.md
 ├── mcp/
-│   └── config.template.json     # template dos MCPs (obsidian + jira), com placeholders
+│   └── config.template.json     # template dos MCPs (obsidian, jira, context7), com placeholders
 ├── settings/
 │   ├── claude-settings.json     # template para ~/.claude/settings.json (model, hooks, statusline)
 │   └── statusline-command.sh    # → ~/.claude/statusline-command.sh
@@ -63,7 +66,7 @@ Proxy de CLI que compacta a saída de comandos antes de chegar no contexto do mo
 2. Rode `tk-setup` para criar o symlink automaticamente em `~/.claude/skills/`
 3. Faça commit e push para manter versionado
 
-Skills de terceiros/oficiais (`skill-creator`, `openspec-*`, plugins de marketplace) **não** entram aqui — são reinstaláveis, não autorais. Ver `docs/CURRENT-SETUP.md` §3.
+Skills de terceiros/oficiais (`skill-creator`, `openspec-*`, `context7-mcp`) e plugins de marketplace (`ponytail`) **não** entram aqui — são reinstaláveis, não autorais. Ver `docs/CURRENT-SETUP.md` §3.
 
 ## Ativar uma persona
 

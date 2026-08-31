@@ -29,6 +29,11 @@ cp "$TOOLKIT/claude-md/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
 cp "$TOOLKIT/claude-md/RTK.md" "$CLAUDE_DIR/RTK.md"
 echo "  ✅ ~/.claude/CLAUDE.md e RTK.md instalados"
 
+# 2b. Regras globais adicionais (~/.claude/rules/*.md)
+mkdir -p "$CLAUDE_DIR/rules"
+cp "$TOOLKIT/rules/"*.md "$CLAUDE_DIR/rules/"
+echo "  ✅ ~/.claude/rules/ instaladas"
+
 # 3. Statusline
 cp "$TOOLKIT/settings/statusline-command.sh" "$CLAUDE_DIR/statusline-command.sh"
 chmod +x "$CLAUDE_DIR/statusline-command.sh"
@@ -138,7 +143,34 @@ else
   echo "  ⏭  Claude CLI não encontrado — MCPs não registrados"
 fi
 
-# 10. Criar diretório de logs se não existir
+# 10. Registrar MCP global do Context7 (docs de biblioteca)
+if command -v claude &> /dev/null; then
+  if [ -z "$CONTEXT7_API_KEY" ]; then
+    echo ""
+    echo "🔑 Para configurar o MCP do Context7, informe a API key (deixe em branco para pular):"
+    read -rsp "   CONTEXT7_API_KEY: " CONTEXT7_API_KEY
+    echo ""
+  fi
+
+  if [ -n "$CONTEXT7_API_KEY" ]; then
+    claude mcp add --transport http --scope user context7 https://mcp.context7.com/mcp \
+      -H "CONTEXT7_API_KEY: $CONTEXT7_API_KEY" 2>/dev/null \
+      && echo "  ✅ MCP context7 registrado no Claude Code (scope user)" \
+      || echo "  ⏭  MCP context7 já estava registrado"
+  else
+    echo "  ⏭  CONTEXT7_API_KEY não informada — MCP não registrado"
+  fi
+fi
+
+# 11. Plugin ponytail (marketplace externo, dietrichgebert/ponytail)
+if command -v claude &> /dev/null; then
+  claude plugin marketplace add dietrichgebert/ponytail 2>/dev/null || true
+  claude plugin install ponytail@ponytail 2>/dev/null \
+    && echo "  ✅ plugin ponytail instalado" \
+    || echo "  ⏭  plugin ponytail já instalado ou falhou (rode 'claude plugin install ponytail@ponytail' manualmente)"
+fi
+
+# 12. Criar diretório de logs se não existir
 mkdir -p "$TOOLKIT/.logs"
 
 echo ""

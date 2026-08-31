@@ -1,13 +1,10 @@
 {
+  "_comment": "obsidian e jira ficam registrados por projeto (claude.json .projects['<dir>'].mcpServers); context7 é global (claude.json .mcpServers) — ver docs/CURRENT-SETUP.md secao 1",
   "mcpServers": {
     "obsidian": {
+      "type": "stdio",
       "command": "npx",
-      "args": ["-y", "obsidian-mcp-server"],
-      "env": {
-        "OBSIDIAN_API_KEY": "{{OBSIDIAN_API_KEY}}",
-        "OBSIDIAN_BASE_URL": "https://127.0.0.1:27124",
-        "NODE_TLS_REJECT_UNAUTHORIZED": "0"
-      }
+      "args": ["-y", "@blacksmithers/obsidian-forge-mcp", "{{OBSIDIAN_VAULT_PATH}}"]
     },
     "jira": {
       "type": "stdio",
@@ -18,6 +15,13 @@
         "--jira-token", "{{JIRA_API_TOKEN}}"
       ],
       "env": {}
+    },
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "{{CONTEXT7_API_KEY}}"
+      }
     }
   }
 }
