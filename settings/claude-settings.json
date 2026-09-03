@@ -25,7 +25,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "bash $HOME/.claude/statusline-command.sh"
+    "command": "bash \"$HOME/.claude/plugins/cache/ponytail/ponytail/4.9.0/hooks/ponytail-statusline.sh\""
   },
   "enabledPlugins": {
     "ponytail@ponytail": true

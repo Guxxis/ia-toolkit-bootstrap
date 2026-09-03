@@ -34,10 +34,7 @@ mkdir -p "$CLAUDE_DIR/rules"
 cp "$TOOLKIT/rules/"*.md "$CLAUDE_DIR/rules/"
 echo "  ✅ ~/.claude/rules/ instaladas"
 
-# 3. Statusline
-cp "$TOOLKIT/settings/statusline-command.sh" "$CLAUDE_DIR/statusline-command.sh"
-chmod +x "$CLAUDE_DIR/statusline-command.sh"
-echo "  ✅ statusline instalada"
+# 3. Statusline: usa a do plugin ponytail (settings/claude-settings.json já aponta pra ela)
 
 # 4. Skills (formato SKILL.md em diretório) → symlink para ~/.claude/skills/
 mkdir -p "$CLAUDE_SKILLS"
