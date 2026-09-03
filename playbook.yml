@@ -1,0 +1,148 @@
+---
+- name: Configurar ambiente Claude Code (ia-toolkit-bootstrap)
+  hosts: localhost
+  connection: local
+  become: false
+  vars:
+    toolkit_dir: "{{ playbook_dir }}"
+    claude_dir: "{{ ansible_env.HOME }}/.claude"
+    obsidian_api_key: "{{ lookup('env', 'OBSIDIAN_API_KEY') }}"
+    jira_url: "{{ lookup('env', 'JIRA_URL') }}"
+    jira_username: "{{ lookup('env', 'JIRA_USERNAME') }}"
+    jira_api_token: "{{ lookup('env', 'JIRA_API_TOKEN') }}"
+    context7_api_key: "{{ lookup('env', 'CONTEXT7_API_KEY') }}"
+
+  tasks:
+    - name: Garantir ~/.claude
+      file:
+        path: "{{ claude_dir }}"
+        state: directory
+
+    - name: Instalar rtk (proxy CLI de otimização de tokens)
+      shell: curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/bin/rtk"
+
+    - name: Instalar CLAUDE.md e RTK.md globais
+      copy:
+        src: "claude-md/{{ item }}"
+        dest: "{{ claude_dir }}/{{ item }}"
+      loop:
+        - CLAUDE.md
+        - RTK.md
+
+    - name: Garantir ~/.claude/rules
+      file:
+        path: "{{ claude_dir }}/rules"
+        state: directory
+
+    - name: Instalar regras globais adicionais
+      copy:
+        src: "{{ item }}"
+        dest: "{{ claude_dir }}/rules/"
+      with_fileglob:
+        - "rules/*.md"
+
+    - name: Garantir ~/.claude/skills
+      file:
+        path: "{{ claude_dir }}/skills"
+        state: directory
+
+    - name: Descobrir skills autorais
+      find:
+        paths: "{{ toolkit_dir }}/skills"
+        file_type: directory
+        depth: 1
+      register: skill_dirs
+
+    - name: Symlinkar skills autorais para ~/.claude/skills/
+      file:
+        src: "{{ item.path }}"
+        dest: "{{ claude_dir }}/skills/{{ item.path | basename }}"
+        state: link
+      loop: "{{ skill_dirs.files }}"
+      loop_control:
+        label: "{{ item.path | basename }}"
+
+    - name: Garantir cores/prompt básicos no .zshrc
+      blockinfile:
+        path: "{{ ansible_env.HOME }}/.zshrc"
+        create: yes
+        marker: "# {mark} ANSIBLE MANAGED BLOCK - terminal cores/prompt"
+        block: |
+          export CLICOLOR=1
+          alias ls='ls --color=auto'
+          alias ll='ls -alF'
+          alias la='ls -A'
+          alias l='ls -CF'
+
+          autoload -U colors && colors
+          PROMPT='%F{green}%n@%m%f:%F{blue}%~%f$ '
+
+    - name: Source do aliases.sh no .bashrc e .zshrc
+      lineinfile:
+        path: "{{ item }}"
+        create: yes
+        regexp: '^source .*ia-toolkit(-bootstrap)?/aliases\.sh$'
+        line: "source {{ toolkit_dir }}/aliases.sh"
+      loop:
+        - "{{ ansible_env.HOME }}/.bashrc"
+        - "{{ ansible_env.HOME }}/.zshrc"
+
+    - name: Aplicar settings.json (repo é a fonte de verdade)
+      copy:
+        src: "settings/claude-settings.json"
+        dest: "{{ claude_dir }}/settings.json"
+        backup: yes
+
+    - name: Registrar MCP obsidian
+      command: >
+        claude mcp add obsidian
+        -e OBSIDIAN_API_KEY={{ obsidian_api_key }}
+        -e OBSIDIAN_BASE_URL=https://127.0.0.1:27124
+        -e NODE_TLS_REJECT_UNAUTHORIZED=0
+        -- npx -y obsidian-mcp-server
+      when: obsidian_api_key != ""
+      register: obsidian_mcp
+      failed_when: false
+      changed_when: obsidian_mcp.rc == 0
+      no_log: true
+
+    - name: Registrar MCP jira (mcp-atlassian)
+      command: >
+        {{ ansible_env.HOME }}/.local/bin/mcp-atlassian
+        --jira-url {{ jira_url }}
+        --jira-username {{ jira_username }}
+        --jira-token {{ jira_api_token }}
+      when: jira_url != "" and jira_username != "" and jira_api_token != ""
+      register: jira_mcp
+      failed_when: false
+      changed_when: jira_mcp.rc == 0
+      no_log: true
+
+    - name: Registrar MCP context7 (scope user)
+      command: >
+        claude mcp add --transport http --scope user context7 https://mcp.context7.com/mcp
+        -H "CONTEXT7_API_KEY: {{ context7_api_key }}"
+      when: context7_api_key != ""
+      register: context7_mcp
+      failed_when: false
+      changed_when: context7_mcp.rc == 0
+      no_log: true
+
+    - name: Registrar marketplace do plugin ponytail
+      command: claude plugin marketplace add dietrichgebert/ponytail
+      register: pony_market
+      failed_when: false
+      changed_when: "'already' not in pony_market.stdout"
+
+    - name: Instalar plugin ponytail
+      command: claude plugin install ponytail@ponytail
+      register: pony_install
+      failed_when: false
+      changed_when: "'already' not in pony_install.stdout"
+
+    - name: Garantir diretório de logs de sessão
+      file:
+        path: "{{ toolkit_dir }}/.logs"
+        state: directory

@@ -7,18 +7,19 @@ Infraestrutura como código para o agente de IA. Versiona comportamentos (CLAUDE
 ## Instalação em novo WSL
 
 ```bash
-git clone <repo-url> ~/Workspace/ia-toolkit-bootstrap
-bash ~/Workspace/ia-toolkit-bootstrap/setup.sh
+git clone <repo-url> ~/workspace/ia-toolkit-bootstrap
+OBSIDIAN_API_KEY=xxx JIRA_URL=... JIRA_USERNAME=... JIRA_API_TOKEN=... CONTEXT7_API_KEY=xxx \
+  ansible-playbook ~/workspace/ia-toolkit-bootstrap/playbook.yml
 source ~/.bashrc   # ou ~/.zshrc
 ```
 
-O `setup.sh` instala o `rtk`, aplica `CLAUDE.md`/`RTK.md`/statusline em `~/.claude/`, symlinka as skills para `~/.claude/skills/` e pede interativamente as credenciais dos MCPs (Obsidian e Jira) — nenhum segredo fica hardcoded no repo.
+O `playbook.yml` instala o `rtk`, aplica `CLAUDE.md`/`RTK.md`/`settings.json` em `~/.claude/`, symlinka as skills para `~/.claude/skills/` e registra os MCPs (Obsidian, Jira, Context7) lendo as credenciais de variáveis de ambiente — nenhum segredo fica hardcoded no repo. As variáveis de MCP são opcionais; omita as que não usar (a tarefa correspondente é pulada).
 
 ## Estrutura
 
 ```
 ia-toolkit-bootstrap/
-├── setup.sh                     # bootstrap — instala rtk, aplica configs, registra MCPs
+├── playbook.yml                  # bootstrap (Ansible) — instala rtk, aplica configs, registra MCPs
 ├── aliases.sh                   # aliases de terminal (sourced pelo .bashrc/.zshrc)
 ├── claude-md/
 │   ├── CLAUDE.md                 # → ~/.claude/CLAUDE.md (importa RTK.md)
@@ -36,8 +37,7 @@ ia-toolkit-bootstrap/
 ├── mcp/
 │   └── config.template.json     # template dos MCPs (obsidian, jira, context7), com placeholders
 ├── settings/
-│   ├── claude-settings.json     # template para ~/.claude/settings.json (model, hooks, statusline)
-│   └── statusline-command.sh    # → ~/.claude/statusline-command.sh
+│   └── claude-settings.json     # → ~/.claude/settings.json (model, hooks, statusline do plugin ponytail)
 ├── docs/
 │   └── CURRENT-SETUP.md         # snapshot da config real + checklist de reconfiguração
 └── .logs/

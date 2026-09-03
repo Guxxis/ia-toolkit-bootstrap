@@ -7,7 +7,7 @@ export PATH="$HOME/.local/bin:$PATH"
 
 alias toolkit="cd $TOOLKIT"
 alias tk-update="cd $TOOLKIT && git pull && echo '✅ toolkit atualizado'"
-alias tk-setup="bash $TOOLKIT/setup.sh"
+alias tk-setup="ansible-playbook $TOOLKIT/playbook.yml"
 alias tk-log="tail -f $TOOLKIT/.logs/sessions.log"
 
 # Exibe persona no terminal (use para copiar e colar no agente)

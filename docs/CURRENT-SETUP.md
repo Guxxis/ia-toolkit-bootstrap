@@ -7,7 +7,7 @@ Atualização do snapshot de 2026-07-03 (commit `44bb877`), feita antes de uma f
 Este repo é só a **Fase 2** (IA). A ordem real é:
 
 1. **`wsl-ansible-bootstrap`** (`Guxxis/wsl-ansible-bootstrap`, repo próprio, com remote no GitHub) — cria o WSL do zero: `bootstrap.sh` instala Ansible e roda `playbook.yaml` com as roles `system` (systemd, Zsh, Node 24 via NodeSource, clientes de banco, mount automático do Google Drive `G:` em `/mnt/g` via fstab), `ssh-relay` (ponte socat+npiperelay para o SSH Agent do Windows), `docker`, `db` e **`ia-config`**.
-2. A role **`ia-config`** é o elo: instala o Claude CLI globalmente (`npm install -g @anthropic-ai/claude-code`) e depois clona/atualiza `git@github.com:Guxxis/ia-toolkit-bootstrap.git` em `~/Workspace/ia-toolkit-bootstrap` e roda o `setup.sh` dele.
+2. A role **`ia-config`** é o elo: instala o Claude CLI globalmente (`npm install -g @anthropic-ai/claude-code`) e depois clona/atualiza `git@github.com:Guxxis/ia-toolkit-bootstrap.git` em `~/workspace/ia-toolkit-bootstrap` e roda o `playbook.yml` dele (`ansible-playbook`, desde set/26 — antes era `setup.sh` em bash).
 3. **`ia-toolkit-bootstrap`** (este repo) — o que está documentado no restante deste arquivo.
 
 `wsl-ansible-bootstrap` é IaC de verdade (Ansible), então não tem um "CURRENT-SETUP.md" próprio — o código já é a documentação. Único ponto de atenção: `playbook.yaml` tem `git_email: "gustavo.silva97@hotmail.com"` hardcoded nas vars — confirme se é o e-mail que você quer usar antes de rodar num WSL novo.
@@ -21,12 +21,12 @@ Este repo é só a **Fase 2** (IA). A ordem real é:
 | CLAUDE.md do workspace principal | `/root/CLAUDE.md` (Obsidian + Jira) | ✅ `claude-md/workspace-CLAUDE.md` |
 | Regra global Context7 | `~/.claude/rules/context7.md` | ✅ `rules/context7.md` (novo desde jul/26) |
 | Settings globais | `~/.claude/settings.json` | ✅ `settings/claude-settings.json` |
-| Statusline | `~/.claude/statusline-command.sh` | ✅ `settings/statusline-command.sh` |
+| Statusline | badge do plugin ponytail (`settings.json.statusLine`, desde set/26 — antes era `~/.claude/statusline-command.sh` próprio) | ✅ referenciado em `settings/claude-settings.json` |
 | Skills autorais | `~/.claude/commands/{diagnostic-creator,infra-planner,jira-ticket-creator}/SKILL.md` | ✅ `skills/` |
 | Config global do Claude Code (`.claude.json`) | symlink para `/mnt/c/Users/gustavo.goncalves/projetos/workspace/config/claude/.claude.json` (fora do WSL, no NTFS) | ⚠️ não versionado — ver seção 4 |
 | Permissões acumuladas | `~/.claude/settings.local.json` | ❌ de propósito — ver seção 5 |
 | Memória automática | `~/.claude/projects/-root/memory/` (86 arquivos hoje) | ❌ não versionado — ver seção 6 |
-| RTK (binário + filtros) | `~/.local/bin/rtk` (v0.43.0, sem mudança desde jul) | ✅ instalado via `setup.sh` |
+| RTK (binário + filtros) | `~/.local/bin/rtk` (v0.43.0, sem mudança desde jul) | ✅ instalado via `playbook.yml` |
 | MCP Obsidian | projeto `/root` no `.claude.json`, pacote **`@blacksmithers/obsidian-forge-mcp`** apontando pro path do vault | ✅ template em `mcp/config.template.json` (pacote trocado desde jul — era `obsidian-mcp-server` + API key REST) |
 | MCP Jira | projeto `/root` no `.claude.json` (token em texto puro!) | ⚠️ template em `mcp/config.template.json`, token NUNCA commitado |
 | MCP Context7 | **global** no `.claude.json` (`.mcpServers`, não dentro de `projects`), HTTP + `CONTEXT7_API_KEY` em texto puro | ⚠️ novo desde jul; template em `mcp/config.template.json`, key NUNCA commitada |
@@ -45,11 +45,11 @@ Skills autorais (versionadas em `skills/`, com lógica de negócio do Grupo Idea
 - **`infra-planner`** — planejamento de infra de projetos novos.
 - **`jira-ticket-creator`** *(nova desde ago/26)* — formaliza pedido/incidente como issue no Jira (projeto DOPS), com aprovação explícita antes de criar.
 
-Hoje vivem em `~/.claude/commands/<nome>/SKILL.md`; o `setup.sh` symlinka para `~/.claude/skills/` (local recomendado atual).
+Hoje vivem em `~/.claude/commands/<nome>/SKILL.md`; o `playbook.yml` symlinka para `~/.claude/skills/` (local recomendado atual).
 
 **Não versionadas** (reinstaláveis):
 - `skill-creator`, `opsx`, `openspec-*`, `context7-mcp` — de marketplaces/pacotes oficiais. Reinstale via mecanismo de plugins do Claude Code, `npx openspec init`, ou deixe o registro do MCP Context7 recriar a skill sozinho.
-- **`ponytail`** *(novo desde ago/26)* — plugin de marketplace (`github:dietrichgebert/ponytail`, v4.8.4). Reinstale com `claude plugin marketplace add dietrichgebert/ponytail && claude plugin install ponytail@ponytail` (o `setup.sh` já tenta fazer isso). Fica registrado em `settings.json` (`enabledPlugins`, `extraKnownMarketplaces`) — por isso o `settings.json` inteiro é versionado, não só um template mínimo.
+- **`ponytail`** *(novo desde ago/26)* — plugin de marketplace (`github:dietrichgebert/ponytail`, v4.8.4). Reinstale com `claude plugin marketplace add dietrichgebert/ponytail && claude plugin install ponytail@ponytail` (o `playbook.yml` já tenta fazer isso). Fica registrado em `settings.json` (`enabledPlugins`, `extraKnownMarketplaces`, `statusLine`) — por isso o `settings.json` inteiro é versionado, não só um template mínimo.
 - `diagnostic-creator-workspace/`, `infra-planner-workspace/` dentro de `~/.claude/commands/` — lixo de eval do `skill-creator`, não configuração.
 
 ## 4. `.claude.json` — o arquivo mais sensível
@@ -60,7 +60,7 @@ Continua symlink para `/mnt/c/Users/gustavo.goncalves/projetos/workspace/config/
 2. **API key do Context7** — `mcpServers.context7.headers.CONTEXT7_API_KEY` (novo desde jul, também em texto puro, também nunca deve ir para o git).
 3. Dados de sessão/telemetria (`oauthAccount`, `machineID`, caches) — não versionar.
 
-Ao reconfigurar do zero: recriar o symlink (o arquivo sobrevive fora do WSL), confirmar `oauthAccount` válido (`claude login` se não), re-registrar os 3 MCPs via `claude mcp add` (obsidian e jira em scope de projeto, context7 em `--scope user`) — o `setup.sh` já pede as 3 chaves interativamente. **Considere rotacionar Jira token e Context7 key** na próxima janela de manutenção.
+Ao reconfigurar do zero: recriar o symlink (o arquivo sobrevive fora do WSL), confirmar `oauthAccount` válido (`claude login` se não), re-registrar os 3 MCPs via `claude mcp add` (obsidian e jira em scope de projeto, context7 em `--scope user`) — o `playbook.yml` já faz isso lendo `OBSIDIAN_API_KEY`/`JIRA_URL`/`JIRA_USERNAME`/`JIRA_API_TOKEN`/`CONTEXT7_API_KEY` de variáveis de ambiente. **Considere rotacionar Jira token e Context7 key** na próxima janela de manutenção.
 
 ## 5. `settings.local.json` — permissões acumuladas
 
@@ -73,13 +73,13 @@ Cresceu de ~15 arquivos (jul/26) para **86 arquivos** (ago/26) — projetos, fee
 ## 7. Checklist pós-reset (ordem sugerida)
 
 1. `wsl-ansible-bootstrap` → `bash bootstrap.sh` (roda todas as roles: `system`, `ssh-relay`, `docker`, `db`).
-2. A role `ia-config` (dentro do mesmo playbook) já instala o Claude CLI e clona + roda o `setup.sh` deste repo automaticamente — não precisa repetir manualmente, mas se for só a parte de IA: `git clone` + `bash setup.sh`, que hoje:
+2. A role `ia-config` (dentro do mesmo playbook) já instala o Claude CLI e clona + roda o `playbook.yml` deste repo automaticamente — não precisa repetir manualmente, mas se for só a parte de IA: `git clone` + `ansible-playbook playbook.yml` (com as variáveis de ambiente dos MCPs exportadas antes, se quiser registrá-los), que hoje:
    - instala o `rtk`
-   - instala `CLAUDE.md`/`RTK.md`/`rules/*.md`/statusline em `~/.claude/`
+   - instala `CLAUDE.md`/`RTK.md`/`rules/*.md` em `~/.claude/`
    - symlinka as 3 skills autorais para `~/.claude/skills/`
-   - aplica `settings.json` (se ainda estiver no padrão mínimo — hoje ele carrega o plugin ponytail e um bloco `autoMode` grande, então provavelmente vai cair no caminho de merge manual)
-   - pede interativamente as credenciais dos 3 MCPs (Obsidian, Jira, Context7)
-   - registra o marketplace + instala o plugin `ponytail`
+   - aplica `settings.json` sempre (o repo já é a fonte de verdade — faz backup do anterior)
+   - registra os 3 MCPs (Obsidian, Jira, Context7) se as variáveis de ambiente correspondentes estiverem setadas
+   - registra o marketplace + instala o plugin `ponytail` (que também fornece o statusline)
 3. `pipx install mcp-atlassian` antes do MCP do Jira, se ainda não automatizado.
 4. Copiar `claude-md/workspace-CLAUDE.md` para o diretório de trabalho principal.
 5. `claude login` se necessário.
