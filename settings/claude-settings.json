@@ -1,24 +1,16 @@
 {
-  "env": {
-    "CLAUDE_AFK_TIMEOUT_MS": "2147483647"
-  },
-  "model": "sonnet",
   "hooks": {
-    "PreToolUse": [
+    "Stop": [
       {
-        "matcher": "Bash",
+        "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "rtk hook claude"
+            "command": "echo \"$(date '+%Y-%m-%d %H:%M:%S') | session_end | pwd=$(pwd)\" >> ~/workspace/ia-toolkit-bootstrap/.logs/sessions.log"
           }
         ]
       }
     ]
-  },
-  "statusLine": {
-    "type": "command",
-    "command": "bash /root/.claude/statusline-command.sh"
   },
   "enabledPlugins": {
     "ponytail@ponytail": true
@@ -31,40 +23,5 @@
       }
     }
   },
-  "theme": "dark-ansi",
-  "preferredNotifChannel": "terminal_bell",
-  "autoMode": {
-    "soft_deny": [
-      "$defaults",
-      "Bash(kubectl delete:*) — routine kubectl use (30× in-project, 48× in shell history) makes destructive delete subcommands worth an explicit soft block rather than relying on generic classifier coverage",
-      "Bash(doctl kubernetes cluster delete:*) — doctl used routinely (12× in-project, 19× in shell history) for DigitalOcean cluster management; destructive cluster deletion should stay soft-blocked",
-      "Bash(terraform destroy:*) — terraform used routinely (2× in-project, 40× in shell history); destroy operations should remain soft-blocked pending confirmation"
-    ],
-    "environment": [
-      "### Org-wide",
-      "**Organization**: idealtrends (inferred from Jira workspace idealtrends.atlassian.net and idealtrends.io hosts seen in usage)",
-      "**Cloud provider(s)**: DigitalOcean (doctl, api.digitalocean.com in usage) and Kubernetes cluster(s) (kubectl usage)",
-      "**Repository visibility**: assume private unless the remote host and repo name indicate otherwise, or a visibility check in the transcript shows public",
-      "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
-      "**Secrets management**: Infisical (infisical k8s namespace seen in usage)",
-      "**Default / protected branches**: unknown — no git remote configured in this repo, and gh lookup was not queryable (no origin remote)",
-      "**CI/CD deploy targets**: None configured",
-      "**Network posture**: Internal MPI/temporary hosting domains and internal idealtrends.io subdomains contacted routinely (wselevadores.mpitemporario.com.br, rbcomunicacaovisuall.mpitemporario.com.br, ddcamila.mpitemporario.com.br, tecnoelev.mpitemporario.com.br, zabbix.idealtrends.io, homolog.vision.idealtrends.io, homolog.growthmachine.idealtrends.io); local/internal IPs also contacted (192.168.3.140, 192.168.3.115, 169.254.169.254)",
-      "**Source control**: The trusted repo (/root, no remote configured) — as scoped by Trusted repo and Repository visibility entries above",
-      "**Trusted internal domains**: idealtrends.io (and its subdomains: zabbix.idealtrends.io, homolog.vision.idealtrends.io, homolog.growthmachine.idealtrends.io), wselevadores.mpitemporario.com.br, wselevadores.com.br, rbcomunicacaovisuall.mpitemporario.com.br, ddcamila.mpitemporario.com.br, tecnoelev.mpitemporario.com.br",
-      "**Trusted cloud buckets**: None configured",
-      "**Key internal services**: Zabbix (zabbix.idealtrends.io, repo.zabbix.com), Jira (idealtrends.atlassian.net), Obsidian vault (brain, via MCP)",
-      "**Internal package registry**: None configured",
-      "**Sensitive data locations & audiences**: ~/.claude/.credentials.json, ~/.config/context7/credentials.json (credential files); any file or store holding personal data, confidential business data, credentials, regulated data, or similarly sensitive material; preserve exact handles when known and share only with audiences cleared at the [named+specifics] bar",
-      "**Data retention / declassification**: None configured",
-      "**Sensitive remote targets**: any namespace, host, or container whose name carries `prod` or `production` as a whole word or name segment (hyphen/underscore/dot-delimited — e.g. matches `prod-db`, not `producer`)",
-      "**Protected deployment namespaces / environments**: None configured — fall back to the Sensitive remote targets heuristic",
-      "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries `prod` or `production` as a whole word or name segment",
-      "### User-specific",
-      "**Primary use of Claude Code**: infrastructure operations and DevOps (Kubernetes/kubectl, DigitalOcean/doctl, Terraform, Helm, Ansible, and an internal `rtk` CLI feature heavily in usage), combined with personal knowledge management (Obsidian vault) and Jira task tracking",
-      "**Trusted repo**: The git repository the agent started in (/root) — no remote is configured, so scope is limited to local filesystem trust; visibility unknown pending a configured remote",
-      "**Org-specific CLIs**: rtk (internal CLI, 11× in-project / referenced via ~/.claude/CLAUDE.md @RTK.md import), doctl, kubectl, helm, terraform, ansible-playbook",
-      "routine under /root/.claude/ prefix qualifiers: skills and rules directories (context7, openspec-*) are locally authored automation, not external code"
-    ]
-  }
+  "theme": "dark"
 }

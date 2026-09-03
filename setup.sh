@@ -4,7 +4,7 @@
 
 set -e
 
-TOOLKIT="$HOME/Workspace/ia-toolkit-bootstrap"
+TOOLKIT="$HOME/workspace/ia-toolkit-bootstrap"
 AGENTS_SKILLS="$HOME/.agents/skills"
 CLAUDE_SKILLS="$HOME/.claude/skills"
 CLAUDE_DIR="$HOME/.claude"
@@ -62,6 +62,23 @@ for skill in "$TOOLKIT/skills/"*.md; do
     echo "  ✅ skill (legado) symlinked: $name"
   fi
 done
+
+
+# 5.5 Garantir visual, cores e aliases básicos no .zshrc caso esteja cru
+if [ ! -s "$ZSHRC" ] || ! grep -q "PROMPT" "$ZSHRC"; then
+  cat << 'EOF' >> "$ZSHRC"
+# --- Configurações base de Terminal (Cores e Aliases) ---
+export CLICOLOR=1
+alias ls='ls --color=auto'
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+
+autoload -U colors && colors
+PROMPT='%F{green}%n@%m%f:%F{blue}%~%f$ '
+EOF
+  echo "   ✅ Cores e aliases padrão (ll, ls) adicionados ao .zshrc"
+fi
 
 # 6. Source aliases no .bashrc e .zshrc (idempotente)
 for rc_file in "$BASHRC" "$ZSHRC"; do

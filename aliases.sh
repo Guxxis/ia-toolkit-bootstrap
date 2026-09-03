@@ -1,7 +1,7 @@
 #!/bin/bash
 # ia-toolkit-bootstrap aliases — source este arquivo no .bashrc
 
-export TOOLKIT="$HOME/Workspace/ia-toolkit-bootstrap"
+export TOOLKIT="$HOME/workspace/ia-toolkit-bootstrap"
 export SSH_AUTH_SOCK="$HOME/.ssh/agent.sock"
 
 alias toolkit="cd $TOOLKIT"
