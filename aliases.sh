@@ -3,6 +3,7 @@
 
 export TOOLKIT="$HOME/workspace/ia-toolkit-bootstrap"
 export SSH_AUTH_SOCK="$HOME/.ssh/agent.sock"
+export PATH="$HOME/.local/bin:$PATH"
 
 alias toolkit="cd $TOOLKIT"
 alias tk-update="cd $TOOLKIT && git pull && echo '✅ toolkit atualizado'"
