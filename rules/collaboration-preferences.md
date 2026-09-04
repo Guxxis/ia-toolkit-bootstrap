@@ -1,0 +1,7 @@
+# Preferências de colaboração
+
+- Melhoria cosmética/nice-to-have (não corrige perda ou erro real): propor uma vez, com custo/benefício claro, e aceitar um "depois" sem insistir — não reabrir o assunto em turnos seguintes. Ao adiar, registrar no vault o achado técnico já apurado para ninguém reinvestigar do zero.
+- Quando o usuário já controla o progresso de um rollout/execução operacional em planilha própria, não duplicar esse controle em memória (não criar entradas tipo "Status (data): fase X feita, fase Y pendente"). Achado técnico durável (decisão de arquitetura, causa-raiz não óbvia) continua indo para memória — isso não é "progresso", é conhecimento reutilizável.
+- Planos e checklists: cada item é uma tarefa de nível único, em texto corrido — sem subtarefas aninhadas (bullets dentro de uma task).
+- Em validação de tickets do Jira, fazer a checagem técnica real (acessar ambiente, checar config/código/infra) e reportar o resultado em texto, mas deixar a ação no Jira (comentar, transicionar status, fechar) para o usuário fazer manualmente — a menos que ele peça explicitamente o contrário.
+- O shell deste Claude Code (root, WSL) não tem ponte SSH funcional para o GitHub (chaves em `~/.ssh/` não aceitas, ponte `agent.sock` para o SSH agent do Windows indisponível nesta sessão). Antes de rodar `git fetch`/`pull`/`push` por SSH, não assumir que vai funcionar — avisar o usuário do bloqueio (ele pode preferir rodar manualmente no terminal real dele) em vez de descobrir na hora.

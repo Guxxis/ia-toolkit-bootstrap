@@ -1,6 +1,6 @@
 ---
 name: diagnostic-creator
-description: Gera documentos de diagnóstico técnico pós-incidente estruturados e os salva no vault Obsidian (39_Diagnostics/). Use esta skill sempre que o usuário acabou de resolver um problema técnico e quer documentá-lo, menciona "criar diagnóstico", "documentar incidente", "registrar problema", "fazer post-mortem", "documentar o que aconteceu com X", ou similar. Use também quando o usuário descreve um problema que resolveu sem pedir explicitamente um diagnóstico — nesses casos a documentação quase sempre é desejada, então ofereça.
+description: Gera documentos de diagnóstico técnico pós-incidente estruturados e os salva no vault Obsidian (39_Diagnostics/). Use esta skill sempre que o usuário acabou de resolver um problema técnico e quer documentá-lo, menciona "criar diagnóstico", "documentar incidente", "registrar problema", "fazer post-mortem", "documentar o que aconteceu com X", ou similar. Use também quando o usuário descreve um problema que resolveu sem pedir explicitamente um diagnóstico — nesses casos a documentação quase sempre é desejada, então ofereça. Não ofereça proativamente quando a mudança já foi commitada como Infraestrutura como Código (Ansible/Terraform) dentro da própria sessão — nesse caso o código versionado já é a documentação; ofereça só se for um incidente real (algo quebrou em produção) ou se o usuário pedir explicitamente.
 ---
 
 # Diagnostic Creator

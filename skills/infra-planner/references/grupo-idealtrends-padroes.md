@@ -78,12 +78,14 @@ Para homolog de projetos: usar `hardening`, `swap`, `docker`, `traefik`. Omitir 
 
 ## Padrão de provisionamento Terraform (Digital Ocean)
 
+**Antes de propor o `ip_range`:** não assuma um CIDR "livre" baseado só no que está documentado em repos locais ou no vault — cada empresa/produto do grupo tem team/token próprio na Digital Ocean, e documentação local fica desatualizada ou nunca existiu para decisões tomadas direto no console. Rode `doctl vpcs list` (com o token do team certo) ou peça print do dashboard DO antes de fechar qualquer range — Terraform só mostra o que foi aplicado por aquele código, não o que outro time criou manualmente ou por outro repo/team.
+
 ```hcl
 # VPC isolada por projeto
 resource "digitalocean_vpc" "<projeto>_vpc" {
   name     = "vpc-<projeto>"
   region   = var.region           # default: nyc3
-  ip_range = "10.X.0.0/24"       # range único por projeto
+  ip_range = "10.X.0.0/24"       # range único por projeto — confirmado via doctl vpcs list, não só por ausência de menção em repo/vault
 }
 
 # Droplet
@@ -245,4 +247,10 @@ Shared-library já existente em `pipeline-library/vars/laravelGitPullPipeline.gr
     current -> releases/<ts>  ← symlink atômico
     public_html -> current/dist (ou public/)
   ```
-- **`deploy.sh`** na raiz do repo: customizado por projeto. Para Octane/Reverb/Horizon, reinicia via `systemctl restart` (não `pm2`). O pipeline-library executa este script dentro da release.
+- **`deploy.sh`** na raiz do repo: customizado por projeto. O pipeline-library executa este script dentro da release.
+
+**Gerenciamento de processos long-running (Horizon/Reverb):** `pm2` é legado no grupo — usado pontualmente em pipelines antigas, não é mais o padrão, mesmo que algum `deploy.sh` mais antigo ainda o referencie. Padrão atual é `supervisor`:
+- Horizon: `php artisan horizon:terminate` no deploy (sem sudo; supervisor respawna o processo).
+- Reverb: `sudo supervisorctl restart <grupo>:<reverb>` (1 linha de sudoers).
+- Scheduler: cron do usuário (`schedule:run` a cada minuto), não supervisor.
+- `.conf` do supervisor aponta para o symlink `current` (nunca para uma release absoluta); versionar em `deploy/supervisor/` no repo do projeto e, idealmente, no Ansible da frota.

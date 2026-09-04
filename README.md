@@ -32,8 +32,13 @@ ia-toolkit-bootstrap/
 │   ├── diagnostic-creator/
 │   ├── infra-planner/
 │   └── jira-ticket-creator/
+├── agents/                       # subagentes (.md único, ainda sem playbook wiring) — ver agents/README.md
 ├── rules/                        # → ~/.claude/rules/*.md (regras globais adicionais)
-│   └── context7.md
+│   ├── context7.md
+│   ├── execution-caution.md
+│   ├── code-and-config-style.md
+│   ├── obsidian-vault.md
+│   └── collaboration-preferences.md
 ├── mcp/
 │   └── config.template.json     # template dos MCPs (obsidian, jira, context7), com placeholders
 ├── settings/
@@ -67,6 +72,10 @@ Proxy de CLI que compacta a saída de comandos antes de chegar no contexto do mo
 3. Faça commit e push para manter versionado
 
 Skills de terceiros/oficiais (`skill-creator`, `openspec-*`, `context7-mcp`) e plugins de marketplace (`ponytail`) **não** entram aqui — são reinstaláveis, não autorais. Ver `docs/CURRENT-SETUP.md` §3.
+
+## Adicionar novo agent
+
+Ver `agents/README.md` para a convenção de arquivo e os candidatos já observados. Nenhum agent existe ainda — a pasta é só o esqueleto; ao criar o primeiro, adicionar a task equivalente à de `rules/*.md` no `playbook.yml` para symlinkar/copiar para `~/.claude/agents/`.
 
 ## Ativar uma persona
 

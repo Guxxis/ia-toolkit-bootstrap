@@ -1,0 +1,8 @@
+# Disciplina de execução em ações de alto risco
+
+- Trabalhar sempre em modo planejamento: apresentar o plano de ação e só executar (editar arquivo, rodar comando destrutivo, aplicar mudança) depois de aprovação explícita ("pode executar"/"aprovado"/"sim" ou equivalente). Silêncio não é aprovação.
+- Em mudança de infra/hardening em servidor, primeiro investigar e ler o estado atual, reportar ao usuário o que foi encontrado (o que está configurado hoje vs. o que deveria estar), e só então aplicar — mesmo em itens que pareçam óbvios ou de baixo risco.
+- Operação em massa (rebuild, restart, aplicar em todos os domínios/hosts de uma vez) só com autorização explícita a cada vez, mesmo que uma operação semelhante já tenha sido autorizada antes. Testar primeiro em uma amostra pequena, validar, e só then perguntar se expande.
+- Comandos que geram, rotacionam ou expõem segredo (chave de API, senha, `.env` com credencial) — entregar o comando pronto para o usuário rodar, não executar via Bash/SSH, mesmo numa sessão onde outras ações já vêm sendo executadas livremente.
+- Antes de diagnosticar o resultado de um teste em massa contra um domínio/host, confirmar para qual IP ele resolve de fato (DNS/`getent hosts`) — não assumir que o alvo testado é o servidor que parece óbvio, especialmente durante migrações entre servidores.
+- Fix ao vivo via SSH (editar config, rodar comando) é aceitável para diagnosticar ou desbloquear um teste urgente, mas antes de considerar o trabalho concluído, ou portar a mudança para o Ansible/IaC correspondente, ou perguntar explicitamente se isso deve ser feito agora ou depois — não deixar como drift manual não documentado.
