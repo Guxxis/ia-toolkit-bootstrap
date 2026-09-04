@@ -6,7 +6,7 @@
   vars:
     toolkit_dir: "{{ playbook_dir }}"
     claude_dir: "{{ ansible_env.HOME }}/.claude"
-    obsidian_api_key: "{{ lookup('env', 'OBSIDIAN_API_KEY') }}"
+    obsidian_vault_path: "{{ lookup('env', 'OBSIDIAN_VAULT_PATH') | default('/mnt/g/Meu Drive/brain', true) }}"
     jira_url: "{{ lookup('env', 'JIRA_URL') }}"
     jira_username: "{{ lookup('env', 'JIRA_USERNAME') }}"
     jira_api_token: "{{ lookup('env', 'JIRA_API_TOKEN') }}"
@@ -95,22 +95,19 @@
         dest: "{{ claude_dir }}/settings.json"
         backup: yes
 
-    - name: Registrar MCP obsidian
+    - name: Registrar MCP obsidian (scope global, pacote atual)
       command: >
-        claude mcp add obsidian
-        -e OBSIDIAN_API_KEY={{ obsidian_api_key }}
-        -e OBSIDIAN_BASE_URL=https://127.0.0.1:27124
-        -e NODE_TLS_REJECT_UNAUTHORIZED=0
-        -- npx -y obsidian-mcp-server
-      when: obsidian_api_key != ""
+        claude mcp add obsidian --scope user
+        -- npx -y @blacksmithers/obsidian-forge-mcp "{{ obsidian_vault_path }}"
+      when: obsidian_vault_path != ""
       register: obsidian_mcp
       failed_when: false
       changed_when: obsidian_mcp.rc == 0
-      no_log: true
 
-    - name: Registrar MCP jira (mcp-atlassian)
+    - name: Registrar MCP jira (mcp-atlassian, scope global)
       command: >
-        {{ ansible_env.HOME }}/.local/bin/mcp-atlassian
+        claude mcp add jira --scope user
+        -- {{ ansible_env.HOME }}/.local/bin/mcp-atlassian
         --jira-url {{ jira_url }}
         --jira-username {{ jira_username }}
         --jira-token {{ jira_api_token }}

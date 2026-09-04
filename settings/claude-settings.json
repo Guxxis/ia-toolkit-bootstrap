@@ -38,5 +38,12 @@
       }
     }
   },
-  "theme": "dark"
+  "theme": "dark",
+  "permissions": {
+    "defaultMode": "auto"
+  },
+  "skillOverrides": {
+    "infra-planner": "off",
+    "diagnostic-creator": "off"
+  }
 }

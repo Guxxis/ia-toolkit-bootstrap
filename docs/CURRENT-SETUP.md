@@ -27,8 +27,8 @@ Este repo é só a **Fase 2** (IA). A ordem real é:
 | Permissões acumuladas | `~/.claude/settings.local.json` | ❌ de propósito — ver seção 5 |
 | Memória automática | `~/.claude/projects/-root/memory/` (86 arquivos hoje) | ❌ não versionado — ver seção 6 |
 | RTK (binário + filtros) | `~/.local/bin/rtk` (v0.43.0, sem mudança desde jul) | ✅ instalado via `playbook.yml` |
-| MCP Obsidian | projeto `/root` no `.claude.json`, pacote **`@blacksmithers/obsidian-forge-mcp`** apontando pro path do vault | ✅ template em `mcp/config.template.json` (pacote trocado desde jul — era `obsidian-mcp-server` + API key REST) |
-| MCP Jira | projeto `/root` no `.claude.json` (token em texto puro!) | ⚠️ template em `mcp/config.template.json`, token NUNCA commitado |
+| MCP Obsidian | **global** (`--scope user`) no `.claude.json`, pacote **`@blacksmithers/obsidian-forge-mcp`** apontando pro path do vault | ✅ template em `mcp/config.template.json`; `playbook.yml` corrigido (set/26) — antes ficava preso ao projeto onde o playbook rodava, e ainda usava `obsidian-mcp-server` + API key REST |
+| MCP Jira | **global** (`--scope user`) no `.claude.json` (token em texto puro!) | ⚠️ template em `mcp/config.template.json`, token NUNCA commitado; `playbook.yml` corrigido (set/26) — antes só executava o binário direto e não registrava nada |
 | MCP Context7 | **global** no `.claude.json` (`.mcpServers`, não dentro de `projects`), HTTP + `CONTEXT7_API_KEY` em texto puro | ⚠️ novo desde jul; template em `mcp/config.template.json`, key NUNCA commitada |
 | Plugin ponytail | marketplace `dietrichgebert/ponytail` (`~/.claude/plugins/`), habilitado em `settings.json.enabledPlugins` | ❌ reinstalável — ver seção 3 |
 | Marketplace oficial | `claude-plugins-official` (auto-registrado) | ❌ não precisa versionar |
@@ -60,7 +60,7 @@ Continua symlink para `/mnt/c/Users/gustavo.goncalves/projetos/workspace/config/
 2. **API key do Context7** — `mcpServers.context7.headers.CONTEXT7_API_KEY` (novo desde jul, também em texto puro, também nunca deve ir para o git).
 3. Dados de sessão/telemetria (`oauthAccount`, `machineID`, caches) — não versionar.
 
-Ao reconfigurar do zero: recriar o symlink (o arquivo sobrevive fora do WSL), confirmar `oauthAccount` válido (`claude login` se não), re-registrar os 3 MCPs via `claude mcp add` (obsidian e jira em scope de projeto, context7 em `--scope user`) — o `playbook.yml` já faz isso lendo `OBSIDIAN_API_KEY`/`JIRA_URL`/`JIRA_USERNAME`/`JIRA_API_TOKEN`/`CONTEXT7_API_KEY` de variáveis de ambiente. **Considere rotacionar Jira token e Context7 key** na próxima janela de manutenção.
+Ao reconfigurar do zero: recriar o symlink (o arquivo sobrevive fora do WSL), confirmar `oauthAccount` válido (`claude login` se não), re-registrar os 3 MCPs via `claude mcp add` (os 3 em `--scope user`, global) — o `playbook.yml` já faz isso lendo `OBSIDIAN_API_KEY`/`JIRA_URL`/`JIRA_USERNAME`/`JIRA_API_TOKEN`/`CONTEXT7_API_KEY` de variáveis de ambiente. **Considere rotacionar Jira token e Context7 key** na próxima janela de manutenção.
 
 ## 5. `settings.local.json` — permissões acumuladas
 

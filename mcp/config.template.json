@@ -1,5 +1,5 @@
 {
-  "_comment": "obsidian e jira ficam registrados por projeto (claude.json .projects['<dir>'].mcpServers); context7 é global (claude.json .mcpServers) — ver docs/CURRENT-SETUP.md secao 1",
+  "_comment": "obsidian, jira e context7 ficam registrados em escopo global (claude.json .mcpServers, --scope user) — ver docs/CURRENT-SETUP.md secao 1",
   "mcpServers": {
     "obsidian": {
       "type": "stdio",
