@@ -64,6 +64,28 @@
       loop_control:
         label: "{{ item.path | basename }}"
 
+    - name: Garantir ~/.claude/agents
+      file:
+        path: "{{ claude_dir }}/agents"
+        state: directory
+
+    - name: Descobrir agents autorais (exclui README)
+      find:
+        paths: "{{ toolkit_dir }}/agents"
+        file_type: file
+        patterns: "*.md"
+        excludes: "README.md"
+        depth: 1
+      register: agent_files
+
+    - name: Copiar agents autorais para ~/.claude/agents/
+      copy:
+        src: "{{ item.path }}"
+        dest: "{{ claude_dir }}/agents/{{ item.path | basename }}"
+      loop: "{{ agent_files.files }}"
+      loop_control:
+        label: "{{ item.path | basename }}"
+
     - name: Garantir cores/prompt básicos no .zshrc
       blockinfile:
         path: "{{ ansible_env.HOME }}/.zshrc"

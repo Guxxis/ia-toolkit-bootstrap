@@ -31,8 +31,9 @@ ia-toolkit-bootstrap/
 ├── skills/                       # skills autorais (SKILL.md), symlinked para ~/.claude/skills/
 │   ├── diagnostic-creator/
 │   ├── infra-planner/
+│   ├── jira-radar/
 │   └── jira-ticket-creator/
-├── agents/                       # subagentes (.md único, ainda sem playbook wiring) — ver agents/README.md
+├── agents/                       # subagentes (.md único) → ~/.claude/agents/*.md via playbook (copy, exceto README.md) — ver agents/README.md
 ├── rules/                        # → ~/.claude/rules/*.md (regras globais adicionais)
 │   ├── context7.md
 │   ├── execution-caution.md
@@ -75,7 +76,7 @@ Skills de terceiros/oficiais (`skill-creator`, `openspec-*`, `context7-mcp`) e p
 
 ## Adicionar novo agent
 
-Ver `agents/README.md` para a convenção de arquivo e os candidatos já observados. Nenhum agent existe ainda — a pasta é só o esqueleto; ao criar o primeiro, adicionar a task equivalente à de `rules/*.md` no `playbook.yml` para symlinkar/copiar para `~/.claude/agents/`.
+Ver `agents/README.md` para a convenção de arquivo e o agent já ativo (`orquestrador-de-tickets`). A task de cópia para `~/.claude/agents/` já existe no playbook e cobre qualquer `agents/*.md` novo automaticamente (exceto `agents/README.md`) — basta soltar o arquivo e rodar `tk-setup`.
 
 ## Ativar uma persona
 
