@@ -61,6 +61,7 @@ ia-toolkit-bootstrap/
 | `tk-update` | `git pull` no toolkit                          |
 | `tk-log`    | monitora log de sessões em tempo real          |
 | `tk-setup`  | re-executa o script de configuração            |
+| `gmount`    | remonta `/mnt/g` (Google Drive) quando o drvfs cai com `ENODEV` |
 
 ## RTK (Rust Token Killer)
 
