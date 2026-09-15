@@ -45,6 +45,7 @@ Releia o que o usuário colou/descreveu ou o que motivou a ativação da skill e
 Pergunte tudo que falta **em uma única mensagem, texto corrido** (não use múltiplas rodadas nem `AskUserQuestion` aqui — as respostas são abertas):
 
 - Categoria, se ambígua
+- **Urgência, de 1 a 5** (1 = mais baixa, 5 = mais alta) — mapeia direto para a prioridade do Jira: 1=Lowest, 2=Low, 3=Medium, 4=High, 5=Highest
 - Prazo / data limite
 - Esforço estimado (horas ou dias)
 - Responsável — assume o próprio usuário por padrão; só pergunte se houver sinal de que deveria ficar com outra pessoa
@@ -83,6 +84,7 @@ Monte e apresente uma **tabela consolidada** com todas as issues que seriam cria
 |---|---|
 | Issue/Título | resumo curto |
 | Categoria/Épico | Incidente (DOPS-207) / Provisionamento (DOPS-208) / Tickets (DOPS-156) — ou épico já existente |
+| Urgência | 1 a 5 (prioridade Jira correspondente entre parênteses, ex. "4 (High)") |
 | Sprint | nome real da sprint (ou "Backlog, sem sprint") |
 | Prazo | data ou "sem prazo definido" |
 | Esforço | horas/dias |
@@ -133,9 +135,19 @@ mcp:jira → jira_create_issue(
   issue_type: "História" | "Problema",   // Problema só quando Épico = Incidentes
   description: <descrição montada acima>,
   assignee: "<email do responsável>",
-  additional_fields: '{"parent": "<DOPS-156|DOPS-207|DOPS-208>", "duedate": "<YYYY-MM-DD>", "timetracking": {"originalEstimate": "<N>h ou <N>d"}}'
+  additional_fields: '{"parent": "<DOPS-156|DOPS-207|DOPS-208>", "duedate": "<YYYY-MM-DD>", "timetracking": {"originalEstimate": "<N>h ou <N>d"}, "priority": {"name": "<Lowest|Low|Medium|High|Highest>"}}'
 )
 ```
+
+**Urgência → prioridade Jira:** a urgência 1-5 coletada no Brainstorm vira o campo `priority` acima, sempre pelo `name` em inglês (é o valor que a API do Jira aceita nesta instância):
+
+| Urgência | `priority.name` |
+|---|---|
+| 1 | Lowest |
+| 2 | Low |
+| 3 | Medium |
+| 4 | High |
+| 5 | Highest |
 
 **Vínculo ao Épico:** neste projeto (team-managed/next-gen), o vínculo Épico↔issue é feito pelo campo `parent`, **não** por `epicKey`/`epic_link` nem por `jira_link_to_epic` — ambos falham aqui (`epicKey` esbarra em `customfield_10008 cannot be set`; `jira_link_to_epic` retorna "não é um Épico" mesmo sendo um, provavelmente por checar o nome do tipo em inglês). Se estiver **convertendo** uma issue já existente em vez de criar uma nova:
 
@@ -171,5 +183,5 @@ Registre em comentário (`jira_add_comment`) que é uma nova ocorrência/solicit
 **Confirme ao final:**
 
 - Chave e link de cada issue criada (`https://idealtrends.atlassian.net/browse/<chave>`) — ou da issue existente linkada
-- Épico, sprint, prazo, esforço e responsável registrados
+- Épico, urgência (com a prioridade Jira correspondente), sprint, prazo, esforço e responsável registrados
 - Se alguma etapa falhou, avise explicitamente em vez de reportar sucesso parcial como sucesso total
