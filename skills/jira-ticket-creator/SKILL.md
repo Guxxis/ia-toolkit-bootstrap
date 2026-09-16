@@ -10,7 +10,7 @@ Skill para transformar uma solicitação que hoje só existe em conversa, GLPI, 
 ## Regras fixas, sem exceção
 
 - **Projeto sempre `DOPS`, nunca o board do produto/sistema afetado.** Mesmo quando o pedido é sobre outro sistema (IdealTrack/IT, Auditoria/AI, etc.), a issue é registrada em DOPS — o board do produto é dos times de desenvolvimento daquele produto, não do time de infra.
-- **Tipo `História` por padrão; `Problema` quando cai no Épico Incidentes.** Ver tabela de destino abaixo — é o único caso em que o tipo muda.
+- **Tipo da issue segue o Épico: `Problema` (Incidentes), `História` (Provisionamento), `Tarefa` (Tickets/Chamados).** Ver tabela de destino abaixo.
 - **Sempre vinculada a um dos três Épicos via campo `parent`.** Não existe issue solta fora de Épico neste fluxo.
 - **Nada vai para o Jira sem aprovação explícita da proposta.** Colar contexto ou pedir para "formalizar" autoriza **montar** a proposta — não publicá-la. Silêncio não é aprovação.
 
@@ -24,7 +24,7 @@ A decisão de qual Épico usar é feita durante a conversa (Etapa Brainstorm/Pro
 |---|---|---|---|
 | **Incidente** | DOPS-207 "Incidentes de Servidor/Sistema" | `Problema` | Já aconteceu ou está acontecendo um problema em servidor/sistema (queda, erro, degradação, falha) |
 | **Provisionamento** | DOPS-208 "Provisionamento" | `História` | Subir ou configurar um servidor/sistema novo, migrar ambiente para nova infra |
-| **Tickets/Chamados** | DOPS-156 "Tickets/Chamados" | `História` | Qualquer outro pedido de trabalho — o catch-all (pipeline, investigação, acesso, config pontual) |
+| **Tickets/Chamados** | DOPS-156 "Tickets/Chamados" | `Tarefa` | Qualquer outro pedido de trabalho — o catch-all (pipeline, investigação, acesso, config pontual) |
 
 **Na dúvida sobre qual dos três se aplica, pergunte — não assuma.** Melhor uma pergunta a mais no Brainstorm do que uma issue no Épico errado.
 
@@ -132,7 +132,7 @@ Só aqui se escreve no Jira. Ordem: Épico (se ainda não existir) → História
 mcp:jira → jira_create_issue(
   project_key: "DOPS",
   summary: "<resumo curto do pedido>",
-  issue_type: "História" | "Problema",   // Problema só quando Épico = Incidentes
+  issue_type: "Problema" | "História" | "Tarefa",   // conforme o Épico — ver tabela acima
   description: <descrição montada acima>,
   assignee: "<email do responsável>",
   additional_fields: '{"parent": "<DOPS-156|DOPS-207|DOPS-208>", "duedate": "<YYYY-MM-DD>", "timetracking": {"originalEstimate": "<N>h ou <N>d"}, "priority": {"name": "<Lowest|Low|Medium|High|Highest>"}}'
