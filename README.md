@@ -43,7 +43,8 @@ ia-toolkit-bootstrap/
 ├── mcp/
 │   └── config.template.json     # template dos MCPs (obsidian, jira, context7), com placeholders
 ├── settings/
-│   └── claude-settings.json     # → ~/.claude/settings.json (model, hooks, statusline do plugin ponytail)
+│   ├── claude-settings.json     # → ~/.claude/settings.json (model, hooks, statusline)
+│   └── statusline-command.sh    # → ~/.claude/statusline-command.sh (statusline em uma linha)
 ├── docs/
 │   └── CURRENT-SETUP.md         # snapshot da config real + checklist de reconfiguração
 └── .logs/
