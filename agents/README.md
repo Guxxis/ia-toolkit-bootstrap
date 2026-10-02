@@ -12,6 +12,18 @@ sincronia de espelhos) — ver `orquestrador-de-tickets.md` neste diretório.
 Não redefine convenções, só decide qual skill invocar e garante o gate de
 aprovação explícita.
 
+## Agent ativo: analista-de-incidentes
+
+Persona de triagem e acompanhamento de incidentes de servidor a partir de
+um card já criado pelo Zabbix (DOPS-207) — ver `analista-de-incidentes.md`.
+Três fases: inicial (`incident-triage` → `incident-plan-refine`, etapas do
+plano final viram subtasks do card), execução (loop de acompanhamento e
+validação) e finalização (`incident-postmortem` → `diagnostic-creator`,
+`.md` na pasta `post-mortem` do Drive). Todo registro vai como comentário
+no card via `incident-comment`; nada é escrito no vault. Servidor só em
+leitura — escrita é sempre do usuário. Uso recomendado como persona da
+sessão principal: `claude --agent analista-de-incidentes`.
+
 ## Outro candidato observado (ainda não promovido)
 
 **Agent de hardening/validação de infra** — encapsularia o loop *investigar → reportar → aguardar autorização → aplicar* já registrado em `rules/execution-caution.md` como um procedimento repetível para ciclos de validação recorrente em servidor (ex.: varredura diária de hardening pós-incidente num conjunto fixo de hosts). Vale a pena promover a agent quando esse tipo de ciclo diário voltar a se repetir por vários dias seguidos no mesmo escopo — até lá, a regra solta em `rules/` já cobre o comportamento.

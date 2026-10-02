@@ -45,6 +45,7 @@
 
 ## Referências
 
-- Artefato HTML: [Visualizar relatório](<URL do artefato gerado pela ferramenta Artifact>)
-- Servidores: [info de conexão se aplicável]
-- Diagnósticos relacionados: [[nome-do-diagnostico-relacionado]]
+- Card de origem: [TASK-ID] (link do Jira)
+- Subtasks: [chaves e resultado de cada uma]
+- Servidores: [nomes, sem IP]
+- Incidentes relacionados: [chaves no Jira / links de postmortems anteriores no Drive]
