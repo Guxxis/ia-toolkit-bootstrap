@@ -1,11 +1,11 @@
 ---
 name: diagnostic-creator
-description: Gera documentos de diagnóstico técnico pós-incidente estruturados e os salva no vault Obsidian (39_Diagnostics/). Use esta skill sempre que o usuário acabou de resolver um problema técnico e quer documentá-lo, menciona "criar diagnóstico", "documentar incidente", "registrar problema", "fazer post-mortem", "documentar o que aconteceu com X", ou similar. Use também quando o usuário descreve um problema que resolveu sem pedir explicitamente um diagnóstico — nesses casos a documentação quase sempre é desejada, então ofereça. Não ofereça proativamente quando a mudança já foi commitada como Infraestrutura como Código (Ansible/Terraform) dentro da própria sessão — nesse caso o código versionado já é a documentação; ofereça só se for um incidente real (algo quebrou em produção) ou se o usuário pedir explicitamente.
+description: Gera documentos de diagnóstico técnico pós-incidente (postmortem) estruturados em .md e os sobe na pasta post-mortem do Google Drive da equipe DevOps, devolvendo o link — usada pela skill incident-postmortem para o comentário final do card de incidente. Use esta skill sempre que o usuário acabou de resolver um problema técnico e quer documentá-lo, menciona "criar diagnóstico", "documentar incidente", "registrar problema", "fazer post-mortem", "documentar o que aconteceu com X", ou similar. Use também quando o usuário descreve um problema que resolveu sem pedir explicitamente um diagnóstico — nesses casos a documentação quase sempre é desejada, então ofereça. Não ofereça proativamente quando a mudança já foi commitada como Infraestrutura como Código (Ansible/Terraform) dentro da própria sessão — nesse caso o código versionado já é a documentação; ofereça só se for um incidente real (algo quebrou em produção) ou se o usuário pedir explicitamente.
 ---
 
 # Diagnostic Creator
 
-Skill para gerar documentos de diagnóstico técnico pós-incidente e salvá-los no vault Obsidian.
+Skill para gerar documentos de diagnóstico técnico pós-incidente (postmortem) em `.md` e salvá-los na pasta `post-mortem` do Google Drive da equipe DevOps.
 
 O objetivo é capturar conhecimento institucional: o que deu errado, por quê, e como foi corrigido — para que quando o mesmo problema (ou similar) ocorrer novamente, a equipe consiga resolver mais rápido e sem partir do zero.
 
@@ -37,28 +37,21 @@ Opcionais — pergunte só se relevante ou se o usuário quiser mais detalhe:
 - Como foi detectado? (alerta, relato de usuário, verificação manual)
 - Há incidentes anteriores relacionados?
 
-## Passo 3: Verifique o vault para seguir o formato estabelecido
+## Passo 3: Gere o diagnóstico
 
-Antes de escrever, confira o padrão dos diagnósticos já existentes no vault:
-
-1. `mcp:obsidian → list_dir("39_Diagnostics")` — lista os arquivos existentes
-2. `mcp:obsidian → read_note(<diagnóstico mais recente>)` — lê um para referência de estilo
-
-Isso garante que o novo diagnóstico siga o mesmo padrão de estrutura, uso de emojis, tabelas e convenção de nomenclatura dos outros — e pareça que pertence ao vault, não que veio de outro sistema.
-
-Se o MCP Obsidian não estiver disponível, pule este passo e use o template padrão em `references/template.md`.
-
-## Passo 4: Gere o diagnóstico
-
-Leia o template em `references/template.md` e preencha com as informações coletadas. Adapte o template ao estilo do vault se houver divergência.
+Leia o template em `references/template.md` e preencha com as informações coletadas. Quando chamada pela skill `incident-postmortem`, inclua também a timeline e a lista de subtasks com o resultado de cada uma que ela passar.
 
 **Convenção de nomenclatura:**
-`Diagnostico-[Sistema]-[ProblemaBreve].md`
+`postmortem-[TASK-ID]-[HOST]-[PROBLEMA].md`
+
+- `TASK-ID`: chave do card de origem no Jira. Sem card (uso fora de incidente), use `SEM-TASK`.
+- `HOST`: nome do servidor como aparece no Zabbix.
+- `PROBLEMA`: 2-4 palavras em kebab-case, sem acento.
 
 Exemplos:
-- `Diagnostico-WordPress-XMLRPC-CPU-Spike.md`
-- `Diagnostico-Nginx-502-PHP-FPM.md`
-- `Diagnostico-IDEALPLUS01-Backup-Timeout.md`
+- `postmortem-DOPS-512-DSW-MKT01-loop-workers-php-fpm.md`
+- `postmortem-DOPS-497-MPIPLUS-FERRAMENTAS-disco-logs-mariadb.md`
+- `postmortem-SEM-TASK-IDEALPLUS01-backup-timeout.md`
 
 **Regras inegociáveis de conteúdo:**
 
@@ -71,70 +64,34 @@ Exemplos:
   - `**PO/PMO:**` — priorização, aprovação de negócio, decisão de produto, comunicação com stakeholders
 
   Combine tags com `+` quando a ação depender de mais de um papel (ex: `**Dev/TechLead + PO/PMO:**`). Nunca deixe uma ação sem tag de responsável — é o que torna o item atribuível de verdade.
-- **Links para diagnósticos relacionados** — se o incidente tem conexão com um anterior (mesma causa, mesmo servidor, mesmo padrão), adicione um `[[wiki-link]]` para o diagnóstico relacionado.
+- **Links para incidentes relacionados** — se o incidente tem conexão com um anterior (mesma causa, mesmo servidor, mesmo padrão), cite a chave do card no Jira e, se houver, o link do postmortem anterior no Drive.
+- **Nunca inclua IPs internos, senhas ou credenciais** — use apenas nomes de servidor, domínios e usuários de sistema.
 
-## Passo 5: Gere o artefato HTML
+## Passo 4: Suba o arquivo no Drive
 
-**Sempre gere um artefato HTML** usando o design system definido em `references/html-report.html`. Este é o formato de compartilhamento externo — deve ser gerado em toda execução da skill, independente de o vault estar disponível ou não.
-
-**Regras para o HTML:**
-
-- Escreva o arquivo no scratchpad da sessão (ex: `/tmp/...`)
-- Publique com a ferramenta `Artifact` (favicon: `🔍`)
-- **Capture a URL retornada pela ferramenta `Artifact`** — ela será incluída na nota do vault no Passo 6
-- O link do artefato pode ser compartilhado com pessoas fora da organização via PDF (`Ctrl+P → Salvar como PDF`) ou como arquivo HTML
-- **Nunca inclua IPs, senhas ou credenciais no HTML** — use apenas nomes de servidor, domínios e nomes de usuário de sistema quando necessário
-- Adapte as seções ao contexto: diagnósticos de incidente resolvido diferem de diagnósticos de bug em aberto
-
-**Seções obrigatórias do HTML (ver estrutura completa em `references/html-report.html`):**
-
-1. **doc-header** — título do diagnóstico e metadados (servidor, sistema, stack, data)
-2. **summary-strip** — 3 cards de resumo: causas confirmadas / hipóteses descartadas / status de resolução
-3. **findings** — um card `.finding` por causa raiz: identificador `RC-XX`, severidade, título, descrição, evidência em `code-evidence`, impacto. Aplique `.pulse` no finding de maior severidade
-4. **hipóteses descartadas** — card `.finding.f-ok` para itens investigados e descartados
-5. **recomendações** — `.rec-block` com lista numerada de ações. Cada `.rec-item` deve trazer um badge de responsável (`badge-infra` = Infra/DevOps, `badge-dev` = Dev/TechLead, `badge-po` = PO/PMO), usando exatamente a mesma tag atribuída ao item correspondente na seção "Ações Preventivas" do Markdown — use dois badges no mesmo item quando a ação depender de mais de um papel. Nunca gere um `.rec-item` sem badge de responsável.
-6. **scope-note** — nota de escopo quando parte da investigação ficou fora do alcance
-7. **doc-footer** — sistema · data
-
-**Classes de severidade:** `f-crit` (vermelho), `f-warn` (laranja), `f-ok` (verde)
-
-**Highlight de código nos blocos `code-evidence`:**
-- `.hl` — linha problemática (laranja)
-- `.cm` — comentário (cinza escuro)
-- `.ok` — linha correta ou esperada (verde)
-- `.kw` — keyword (roxo)
-- `.str` — string (verde-limão)
-- `.anno` — anotação crítica (vermelho bold)
-
-## Passo 6: Salve o diagnóstico no vault
-
-A nota do vault deve incluir a URL do artefato HTML gerado no Passo 5. Adicione-a na seção `## Referências` do documento, em formato de link Markdown:
-
-```markdown
-## Referências
-
-- Artefato HTML: [Visualizar relatório](https://claude.ai/code/artifact/XXXX)
-- Servidor: ...
-- Diagnósticos relacionados: [[nome-do-diagnostico]]
-```
-
-### Preferencial — MCP Obsidian disponível:
+Destino: pasta `post-mortem` do drive compartilhado "Devops Tecnologia GIT" (conta devops@, compartilhada como colaborador), folderId `1XbprcVVQLRCsbHtWkMgWmzE0XzNh4FRT`.
 
 ```
-mcp:obsidian → write_note(
-  path: "39_Diagnostics/Diagnostico-[Sistema]-[ProblemaBreve].md",
-  content: <conteúdo gerado, com URL do artefato na seção Referências>
+mcp__claude_ai_Google_Drive__create_file(
+  title: "postmortem-[TASK-ID]-[HOST]-[PROBLEMA].md",
+  parentId: "1XbprcVVQLRCsbHtWkMgWmzE0XzNh4FRT",
+  textContent: <conteúdo gerado>,
+  contentMimeType: "text/markdown",
+  disableConversionToGoogleType: true
 )
 ```
 
-### Fallback — MCP Obsidian indisponível:
+`disableConversionToGoogleType: true` é obrigatório — o arquivo tem que ficar como `.md`, não virar Google Doc. Antes de subir, procure um arquivo com o mesmo título na pasta (`search_files` com `parentId = '1XbprcVVQLRCsbHtWkMgWmzE0XzNh4FRT' and title = '...'`); se existir, pergunte ao usuário se sobe uma nova versão (sufixo `-v2`) em vez de duplicar em silêncio.
 
-Salve como arquivo `.md`, nesta ordem de preferência:
-1. `~/Desktop/Diagnostico-[Sistema]-[ProblemaBreve].md`
-2. `/tmp/Diagnostico-[Sistema]-[ProblemaBreve].md`
+Depois do upload, confira com `get_file_metadata` que o arquivo existe e não está vazio, e capture o `viewUrl`.
 
-Informe o usuário exatamente onde o arquivo foi salvo e instrua a movê-lo manualmente para `39_Diagnostics/` no vault.
+### Fallback — Drive indisponível
 
-## Passo 7: Confirme e destaque as ações abertas
+Salve em `$CLAUDE_JOB_DIR/tmp/` ou `/tmp/` com o mesmo nome, informe o caminho exato e peça para o usuário subir manualmente na pasta `post-mortem`. Não tente de novo várias vezes.
 
-Após salvar, informe o link do artefato HTML e o caminho do arquivo no vault, e liste as ações preventivas em aberto — elas são os próximos passos concretos que o usuário deve tomar para evitar a recorrência do problema.
+## Passo 5: Devolva o link
+
+Informe o link do arquivo no Drive e liste as ações preventivas em aberto — são os próximos passos concretos para evitar recorrência.
+
+- Chamada pela `incident-postmortem`: devolva o link para ela, que posta o comentário final no card de origem via `incident-comment`. Não comente no Jira a partir desta skill.
+- Chamada fora de incidente (sem card): só o upload e o link, nada no Jira.
