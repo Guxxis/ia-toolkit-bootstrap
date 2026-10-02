@@ -1,49 +1,56 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Compact statusline: model | effort | context bar | 5h% | 7d% | duration | folder
 input=$(cat)
 
-MODEL=$(echo "$input" | jq -r '.model.display_name')
-EFFORT=$(echo "$input" | jq -r '.effort.level // empty')
-DIR=$(basename "$(echo "$input" | jq -r '.workspace.current_dir')")
-PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
-FIVE_H=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty')
-WEEK=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty')
-TRANSCRIPT=$(echo "$input" | jq -r '.transcript_path // empty')
+R='\033[0m'
+C_MODEL='\033[2;36m'
+C_EFFORT='\033[2;35m'
+C_BAR='\033[2;33m'
+C_5H='\033[2;32m'
+C_7D='\033[2;32m'
+C_DUR='\033[2;34m'
+C_DIR='\033[2;37m'
 
-DIM='\033[2m'; CYAN='\033[2;36m'; MAGENTA='\033[2;35m'; BLUE='\033[2;34m'; RESET='\033[0m'
-GREEN='\033[2;32m'; YELLOW='\033[2;33m'; RED='\033[2;31m'
+model=$(printf '%s' "$input" | jq -r '.model.display_name // "?"')
 
-if [ "$PCT" -ge 90 ]; then BAR_COLOR="$RED"
-elif [ "$PCT" -ge 70 ]; then BAR_COLOR="$YELLOW"
-else BAR_COLOR="$GREEN"; fi
+effort=$(printf '%s' "$input" | jq -r '.effort.level // empty')
+[ -z "$effort" ] && effort="-"
 
-FILLED=$((PCT / 10)); EMPTY=$((10 - FILLED))
-printf -v FILL "%${FILLED}s"; printf -v PAD "%${EMPTY}s"
-BAR="${FILL// /█}${PAD// /░}"
+used=$(printf '%s' "$input" | jq -r '.context_window.used_percentage // empty')
+if [ -n "$used" ]; then
+  used_i=$(printf '%.0f' "$used")
+else
+  used_i=0
+fi
+[ "$used_i" -gt 100 ] 2>/dev/null && used_i=100
+bar_len=10
+filled=$(( used_i * bar_len / 100 ))
+[ "$filled" -gt "$bar_len" ] && filled=$bar_len
+bar=$(printf '#%.0s' $(seq 1 "$filled" 2>/dev/null))
+empty=$(printf '.%.0s' $(seq 1 $((bar_len - filled)) 2>/dev/null))
 
-LIMITS=""
-[ -n "$FIVE_H" ] && LIMITS="5h:$(printf '%.0f' "$FIVE_H")%"
-[ -n "$WEEK" ] && LIMITS="${LIMITS:+$LIMITS }7d:$(printf '%.0f' "$WEEK")%"
+five=$(printf '%s' "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty')
+[ -n "$five" ] && five=$(printf '%.0f' "$five") || five="-"
 
-# ponytail: session start read from first transcript line's timestamp;
-# falls back to empty (field omitted) if missing/unparseable.
-DUR=""
-if [ -f "$TRANSCRIPT" ]; then
-  START_TS=$(head -n 1 "$TRANSCRIPT" | jq -r '.timestamp // empty' 2>/dev/null)
-  if [ -n "$START_TS" ]; then
-    START_EPOCH=$(date -d "$START_TS" +%s 2>/dev/null)
-    if [ -n "$START_EPOCH" ]; then
-      DIFF=$(($(date +%s) - START_EPOCH))
-      H=$((DIFF / 3600)); M=$(((DIFF % 3600) / 60))
-      [ "$H" -gt 0 ] && DUR="${H}h${M}m" || DUR="${M}m"
+week=$(printf '%s' "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty')
+[ -n "$week" ] && week=$(printf '%.0f' "$week") || week="-"
+
+transcript=$(printf '%s' "$input" | jq -r '.transcript_path // empty')
+dur="-"
+if [ -n "$transcript" ] && [ -f "$transcript" ]; then
+  first_ts=$(head -n1 "$transcript" 2>/dev/null | jq -r '.timestamp // empty' 2>/dev/null)
+  if [ -n "$first_ts" ]; then
+    start_epoch=$(date -d "$first_ts" +%s 2>/dev/null)
+    if [ -n "$start_epoch" ]; then
+      diff=$(( $(date +%s) - start_epoch ))
+      h=$(( diff / 3600 )); m=$(( (diff % 3600) / 60 ))
+      if [ "$h" -gt 0 ]; then dur="${h}h${m}m"; else dur="${m}m"; fi
     fi
   fi
 fi
 
-OUT="${CYAN}${MODEL}${RESET}"
-[ -n "$EFFORT" ] && OUT="${OUT} ${DIM}·${RESET} ${MAGENTA}${EFFORT}${RESET}"
-OUT="${OUT} ${DIM}·${RESET} ${BAR_COLOR}${BAR}${RESET} ${PCT}%"
-[ -n "$LIMITS" ] && OUT="${OUT} ${DIM}·${RESET} ${GREEN}${LIMITS}${RESET}"
-[ -n "$DUR" ] && OUT="${OUT} ${DIM}·${RESET} ${BLUE}${DUR}${RESET}"
-OUT="${OUT} ${DIM}·${RESET} ${DIM}${DIR}${RESET}"
+cwd=$(printf '%s' "$input" | jq -r '.workspace.current_dir // .cwd // empty')
+folder=$(basename "${cwd:-.}")
 
-printf "%b\n" "$OUT"
+printf "${C_MODEL}%s${R} ${C_EFFORT}%s${R} ${C_BAR}[%s%s]%d%%${R} ${C_5H}5h:%s%%${R} ${C_7D}7d:%s%%${R} ${C_DUR}%s${R} ${C_DIR}%s${R}\n" \
+  "$model" "$effort" "$bar" "$empty" "$used_i" "$five" "$week" "$dur" "$folder"

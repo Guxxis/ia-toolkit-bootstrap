@@ -117,6 +117,12 @@
         dest: "{{ claude_dir }}/settings.json"
         backup: yes
 
+    - name: Aplicar statusline-command.sh
+      copy:
+        src: "settings/statusline-command.sh"
+        dest: "{{ claude_dir }}/statusline-command.sh"
+        mode: "0755"
+
     - name: Registrar MCP obsidian (scope global, pacote atual)
       command: >
         claude mcp add obsidian --scope user
