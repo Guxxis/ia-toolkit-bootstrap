@@ -64,6 +64,14 @@ citando a issue original como "Origem"), vinculada ao Épico certo via campo
 `parent` (ver "Descobertas técnicas" — precisa ser um objeto, não string),
 depois criar o link tipo `Relates` entre a issue nova e a original.
 
+**Título do espelho:** `[<CHAVE-ORIGINAL>] <texto do que precisa fazer>` —
+ex. `[IT-165] texto do que precisa fazer`, `[IDEAL-6848] outra coisa pra
+fazer`. Não usar o prefixo `[Espelho <CHAVE>]` (formato antigo). O objetivo
+é identificar projeto/task de cara pela lista do DOPS, sem precisar abrir o
+link relacionado — o link `Relates` continua sendo criado normalmente, só é
+aberto quando for preciso mais contexto ou para deixar o comentário final
+de conclusão.
+
 ## Modo 2 — Montagem da sprint da semana
 
 ### Buscar candidatos de backlog
@@ -142,6 +150,14 @@ project = DOPS AND statusCategory != Done AND updated <= -14d ORDER BY updated A
 14 dias é o default; se o usuário pedir outro limite ("mostra parado há mais
 de 30 dias"), use o dele. Reporte em lista simples: chave, título,
 responsável, data da última atualização, dias parado.
+
+**Prioridade dos Épicos (não tratar toda estagnação igual):** os Épicos
+DOPS-1, 46, 47, 48, 49 e 50 são projetos internos de melhoria/padronização da
+área de DevOps — importantes, mas sem SLA externo. DOPS-156, 207 e 208 são
+solicitações de terceiros (outro time ou empresa da holding) com prazo e SLA
+de resposta. Ao reportar estagnados, separar ou rebaixar a urgência de
+issues estagnadas dentro de DOPS-1/46-50 frente às estagnadas dentro de
+DOPS-156/207/208 — estas últimas são o sinal que realmente importa.
 
 ### 3.2 Sincronia de espelhos
 
