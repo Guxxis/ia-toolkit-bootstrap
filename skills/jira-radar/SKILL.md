@@ -81,6 +81,15 @@ JQL:
 project = DOPS AND sprint is EMPTY AND statusCategory != Done ORDER BY priority DESC, created ASC
 ```
 
+`sprint is EMPTY` não pega issue não concluída que já passou por sprint
+fechada e não foi movida para a próxima (o histórico em `customfield_10010`
+fica preenchido). Rodar também:
+```
+project = DOPS AND statusCategory != Done AND sprint in closedSprints() AND sprint not in openSprints() AND sprint not in futureSprints() ORDER BY priority DESC, created ASC
+```
+e apresentar esses itens separados na proposta, citando por quais sprints
+já passaram.
+
 ### Descobrir a sprint ativa
 
 Sem ferramenta de agile board neste MCP (ver "Descobertas técnicas"):
@@ -92,6 +101,10 @@ de objetos `{id, name, state, boardId, startDate, endDate}`. O de
 `state: "active"` é a sprint ativa; se precisar da próxima (futura),
 procure `state: "future"` no mesmo campo, ou pergunte ao usuário o
 nome/id se nenhuma issue existente ainda referencia a próxima.
+
+Se `openSprints()` voltar vazio (sprint anterior já fechada e a nova ainda
+não iniciada), usar `project = DOPS AND sprint in futureSprints()` e ler o
+`state: "future"` do mesmo campo.
 
 ### Propor
 
