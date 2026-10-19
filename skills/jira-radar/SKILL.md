@@ -1,6 +1,6 @@
 ---
 name: jira-radar
-description: Varre o Jira periodicamente por quatro ângulos — (1) issues assignadas ao usuário fora do projeto DOPS que ainda não têm nenhum Linked Work Item DOPS-*, (2) backlog do DOPS sem sprint atribuída, para ajudar a montar a sprint da semana, (3) issues do DOPS sem atualização há vários dias (estagnadas), e (4) issues-espelho do DOPS cuja issue original já foi concluída, candidatas a fechar. Propõe em tabela ou lista, nunca escreve sem aprovação explícita quando o modo envolve criar/editar. Usa as mesmas convenções de Épico, formato de descrição e aprovação da skill jira-ticket-creator — não as redefine. Use quando o usuário disser "roda o radar", "vê o que tá sem ticket no DOPS", "monta a sprint", "o que entra na sprint dessa semana", "backlog do DOPS", "tickets parados/estagnados", "os espelhos já podem fechar", ou periodicamente a pedido dele. Não use para formalizar um pedido novo que acabou de chegar (isso é jira-ticket-creator).
+description: Varre o Jira periodicamente por quatro ângulos — (1) issues assignadas ao usuário fora do projeto DOPS que ainda não têm nenhum Linked Work Item DOPS-*, (2) backlog do DOPS sem sprint atribuída, para ajudar a montar a próxima sprint (2 semanas), (3) issues do DOPS sem atualização há vários dias (estagnadas), e (4) issues-espelho do DOPS cuja issue original já foi concluída, candidatas a fechar. Propõe em tabela ou lista, nunca escreve sem aprovação explícita quando o modo envolve criar/editar. Usa as mesmas convenções de Épico, formato de descrição e aprovação da skill jira-ticket-creator — não as redefine. Use quando o usuário disser "roda o radar", "vê o que tá sem ticket no DOPS", "monta a sprint", "o que entra na próxima sprint", "backlog do DOPS", "tickets parados/estagnados", "os espelhos já podem fechar", ou periodicamente a pedido dele. Não use para formalizar um pedido novo que acabou de chegar (isso é jira-ticket-creator).
 ---
 
 # Jira Radar
@@ -72,7 +72,10 @@ link relacionado — o link `Relates` continua sendo criado normalmente, só é
 aberto quando for preciso mais contexto ou para deixar o comentário final
 de conclusão.
 
-## Modo 2 — Montagem da sprint da semana
+## Modo 2 — Montagem da sprint (2 semanas)
+
+Desde 2026-10-20 as sprints do DOPS têm 2 semanas (antes eram de 1
+semana), alinhadas à convenção dos outros times.
 
 ### Buscar candidatos de backlog
 
@@ -126,26 +129,43 @@ status/transição — isso é do usuário.
 
 ### Capacidade observada (referência estática, não é cálculo automático)
 
-Levantado em 2026-09-11 somando `customfield_10092` das issues concluídas
-em cada sprint fechada, atribuídas pela **data de conclusão
-(`resolutiondate`) dentro da janela `startDate`/`endDate` da sprint** —
-não pela simples presença no array de `customfield_10010`, que guarda todo
-o histórico de sprints por onde a issue passou (usar `sprint = X` na JQL
-conta issues retrabalhadas em mais de uma sprint em dobro).
+Método: somar `customfield_10092` das issues concluídas (sem Épico e
+Subtarefa), atribuídas pela **data de conclusão (`resolutiondate`) dentro
+da janela `startDate`/`completeDate` da sprint** — não pela simples
+presença no array de `customfield_10010`, que guarda todo o histórico de
+sprints por onde a issue passou (usar `sprint = X` na JQL conta issues
+retrabalhadas em mais de uma sprint em dobro). Issue sem estimativa conta
+como 0, então todo número é piso.
 
-- SPRINT 6 (18/08–25/08): 21 SP entregues (piso — 5 issues concluídas
-  nessa sprint não tinham estimativa, contam como 0).
-- SPRINT 7 (25/08–01/09): 55 SP entregues.
-- SPRINT 8 (01/09–08/09): 16 SP entregues.
-- Média das últimas 3 sprints fechadas: ≈31 SP. Média das últimas 2: ≈35,5
-  SP.
+Histórico das sprints de 1 semana (levantado em 2026-10-19):
+
+| Sprint | Janela | SP entregues | Issues (sem SP) |
+|---|---|---|---|
+| SPRINT 6 | 18/08–25/08 | 21 | ? (5) |
+| SPRINT 7 | 25/08–01/09 | 55 | — |
+| SPRINT 8 | 01/09–08/09 | 16 | — |
+| SPRINT 9 | 08/09–15/09 | 14 | 4 (0) |
+| SPRINT 10 | 15/09–22/09 | 43 | 15 (0) |
+| SPRINT 11 | 22/09–29/09 | 58 | 24 (0) |
+| SPRINT 12 | 29/09–06/10 | 35 | 28 (13) |
+| SPRINT 13 | 06/10–13/10 | 22 | 17 (6) |
+| SPRINT 14 | 13/10–20/10 | 27 até 19/10 | 20 (9) |
+
+- Média semanal das 8 sprints fechadas (S6–S13): ≈33 SP/semana; das 3
+  mais recentes (S12–S14): ≈28 SP/semana.
+- Pares de semanas como janela de 2 semanas: S6+S7 = 76, S8+S9 = 30,
+  S10+S11 = 101, S12+S13 = 57 → média ≈66 SP.
+- Referência inicial para sprint de 2 semanas: ≈60 SP (faixa 50–70).
+  A variância semana a semana é alta (14 a 58) e a fatia de issues sem SP
+  cresceu desde a S12, o que puxa os números para baixo.
 
 Isto é só uma nota de contexto — o usuário decidiu não ter cálculo de
 capacidade automático neste modo, a decisão de quanto entra na sprint
-continua sendo dele. Ao usar este modo, vale citar essa referência e
-sugerir recalcular com as sprints mais recentes à medida que mais dados
-forem se acumulando, em vez de tratar os três números acima como
-permanentes.
+continua sendo dele. Ao usar este modo, cite a referência e, a cada sprint
+de 2 semanas fechada, recalcule e acrescente uma linha numa tabela de
+sprints de 2 semanas — os 60 SP são para ser regulados com o tempo, não
+permanentes. Com 3 ou mais sprints de 2 semanas fechadas, passe a usar só
+elas e descarte a conversão das semanais.
 
 ## Modo 3 — Saúde do DOPS (somente leitura, sem gate de aprovação)
 
