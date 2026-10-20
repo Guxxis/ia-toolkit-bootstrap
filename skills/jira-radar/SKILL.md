@@ -208,15 +208,19 @@ transiciona nem comenta sozinho, só avisa.
 > assumir que o código/JQL está errado — a causa mais provável é a
 > instância ter mudado (reprojetar board, reconfigurar campo), não a skill.
 
-- O MCP Atlassian ativo nesta conta usa prefixo `mcp__claude_ai_Atlassian__*`
-  (busca por JQL, leitura/criação/edição de issue, criação de link,
-  `getAccessibleAtlassianResources` para obter o cloudId
-  `idealtrends.atlassian.net`). **Não é o mesmo MCP** que
-  `jira-ticket-creator` documenta como `mcp:jira` com tools `jira_*`
-  (incluindo ferramentas de agile board/sprint) — esse MCP antigo não está
-  disponível aqui. Já houve um drift silencioso de nome de MCP uma vez; se
-  acontecer de novo, procure no MCP ativo o equivalente antes de assumir que
-  o Jira caiu.
+- O MCP Atlassian ativo nesta conta é o conector "Atlassian MCP", prefixo
+  `mcp__claude_ai_Atlassian_MCP__*` (busca por JQL, leitura/criação/edição
+  de issue; criação de link via `discover` → `executeWrite`
+  `createJiraIssueLink`), sempre com `cloudId: "idealtrends.atlassian.net"`.
+  O conector "Atlassian" (`mcp__claude_ai_Atlassian__*`) responde 403 "app
+  is not installed", e o antigo `mcp:jira`/`jira_*` não existe mais. Já
+  houve drift silencioso de nome de MCP mais de uma vez; se acontecer de
+  novo, procure no MCP ativo o equivalente antes de assumir que o Jira caiu.
+- Na busca JQL, `issuelinks` e custom fields só voltam com `view: "full"`
+  (ou `"evidence"`) — a view compacta default os omite mesmo pedindo o
+  campo, o que faria todo issue parecer órfão no Modo 1.
+- Prioridade: setar pelo `id` (1 Muito Alta, 2 Alta, 3 Média, 4 Baixa) —
+  ver tabela em `jira-ticket-creator`; `name` em inglês é rejeitado.
 - Sem ferramenta de agile board neste MCP: descobrir a sprint ativa via JQL
   `project = DOPS AND sprint in openSprints()` e ler `customfield_10010` do
   resultado.
