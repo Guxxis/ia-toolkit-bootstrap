@@ -155,6 +155,18 @@
       changed_when: context7_mcp.rc == 0
       no_log: true
 
+    - name: Chrome + dependências do sistema para o MCP playwright
+      command: npx -y playwright install --with-deps chrome
+      args:
+        creates: /opt/google/chrome/chrome
+      become: true
+
+    - name: Registrar MCP playwright (scope user)
+      command: claude mcp add playwright --scope user -- npx @playwright/mcp@latest
+      register: playwright_mcp
+      failed_when: false
+      changed_when: playwright_mcp.rc == 0
+
     - name: Registrar marketplace do plugin ponytail
       command: claude plugin marketplace add dietrichgebert/ponytail
       register: pony_market
