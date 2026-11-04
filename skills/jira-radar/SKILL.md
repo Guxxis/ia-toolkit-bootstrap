@@ -1,6 +1,6 @@
 ---
 name: jira-radar
-description: Varre o Jira periodicamente por quatro ângulos — (1) issues assignadas ao usuário fora do projeto DOPS que ainda não têm nenhum Linked Work Item DOPS-*, (2) backlog do DOPS sem sprint atribuída, para ajudar a montar a próxima sprint (2 semanas), (3) issues do DOPS sem atualização há vários dias (estagnadas), e (4) issues-espelho do DOPS cuja issue original já foi concluída, candidatas a fechar. Propõe em tabela ou lista, nunca escreve sem aprovação explícita quando o modo envolve criar/editar. Usa as mesmas convenções de Épico, formato de descrição e aprovação da skill jira-ticket-creator — não as redefine. Use quando o usuário disser "roda o radar", "vê o que tá sem ticket no DOPS", "monta a sprint", "o que entra na próxima sprint", "backlog do DOPS", "tickets parados/estagnados", "os espelhos já podem fechar", ou periodicamente a pedido dele. Não use para formalizar um pedido novo que acabou de chegar (isso é jira-ticket-creator).
+description: Varre o Jira periodicamente por quatro ângulos — (1) issues assignadas ao usuário fora do projeto DOPS que ainda não têm nenhum Linked Work Item DOPS-*, (2) backlog do DOPS sem sprint atribuída, para ajudar a montar a próxima sprint (2 semanas), (3) issues do DOPS sem atualização há vários dias (estagnadas), e (4) issues-espelho do DOPS cuja issue original já foi concluída, candidatas a fechar. O Modo 1 cria o espelho no DOPS direto, sem aprovação (pensado para rodar agendado); os demais modos propõem em tabela ou lista e nunca escrevem sem aprovação explícita. Usa as mesmas convenções de Épico, formato de descrição e aprovação da skill jira-ticket-creator — não as redefine. Use quando o usuário disser "roda o radar", "vê o que tá sem ticket no DOPS", "monta a sprint", "o que entra na próxima sprint", "backlog do DOPS", "tickets parados/estagnados", "os espelhos já podem fechar", ou periodicamente a pedido dele. Não use para formalizar um pedido novo que acabou de chegar (isso é jira-ticket-creator).
 ---
 
 # Jira Radar
@@ -16,6 +16,11 @@ de montar qualquer proposta ou criar/editar qualquer issue, releia
 divergirem, a fonte de verdade é `jira-ticket-creator` — ajuste este
 arquivo, não o contrário.
 
+**Exceção deliberada:** o Modo 1 não passa pelo gate de aprovação — o
+usuário decidiu que todo item aberto atribuído a ele fora do DOPS vira
+espelho automaticamente, para o radar poder rodar agendado. Os Modos 2 e 3
+continuam com o gate normal.
+
 Quatro modos, cada um pode ser acionado independente dos outros.
 
 ## Modo 1 — Radar de órfãos (fora do DOPS, sem link para DOPS)
@@ -26,8 +31,9 @@ JQL:
 ```
 assignee = currentUser() AND project != DOPS AND statusCategory != Done
 ```
-via a ferramenta de busca JQL do MCP Atlassian ativo, pedindo o campo
-`issuelinks` no retorno (além dos campos default).
+via a ferramenta de busca JQL do MCP Atlassian ativo, com `view: "full"` e
+os campos `summary`, `issuetype`, `priority`, `reporter`, `description`,
+`issuelinks` e `customfield_10092` — tudo que a criação do espelho usa.
 
 ### Filtrar
 
@@ -35,42 +41,49 @@ Descarte qualquer issue cujos `issuelinks` já apontem para uma chave
 `DOPS-*` (inward ou outward, qualquer tipo de link — já tem rastreio, não
 duplicar). O que resta são os órfãos.
 
-**Limitação conhecida:** o filtro olha só `issuelinks` nativo do Jira. Um
-link remoto (uma URL colada em vez de um link Jira nativo) para uma issue
-DOPS não seria pego por esse filtro — pior caso é propor uma issue que já
-tem rastreio, e o usuário recusa na Proposta. Não é crítico, mas não finja
-que o filtro é perfeito.
+Antes de criar, procure também por espelho já existente sem link (rodada
+anterior que criou a issue mas falhou no link):
+```
+project = DOPS AND summary ~ "\"[<CHAVE-ORIGINAL>]\""
+```
+Se achar, não crie outro — só crie o link `Relates` que está faltando.
 
-### Propor
+**Limitação conhecida:** um link remoto (URL colada em vez de link Jira
+nativo) para uma issue DOPS não é pego por nenhum dos dois filtros — pior
+caso é um espelho duplicado, que o usuário fecha à mão.
 
-Mesma tabela de `jira-ticket-creator` (Issue/Título, Categoria/Épico,
-Sprint, Prazo, Esforço, Responsável) — uma linha por órfão, citando a issue
-original (chave + link) na primeira coluna. Categoria/Épico é sugestão sua
-com base no conteúdo da issue original; pergunte o que estiver ambíguo, em
-texto corrido, na mesma mensagem — **nunca `AskUserQuestion` nesta etapa**
-(mesma regra do Brainstorm em `jira-ticket-creator`: as respostas aqui são
-abertas, não uma escolha fechada).
+### Criar o espelho (automático, sem aprovação)
 
-Antes de propor, vale conferir rapidamente se já existe algo relacionado no
-DOPS (busca por palavra-chave), mesmo sem link direto — evita propor
-duplicata.
+Para cada órfão, sem perguntar nada:
 
-### Aprovação e aplicação
+- Título: `[<CHAVE-ORIGINAL>] <summary original>` — ex. `[AI-641] WildCard
+  não funcionando em Produção Projeto Auditoria`. Não usar o prefixo
+  `[Espelho <CHAVE>]` (formato antigo).
+- Responsável: o próprio usuário (`assignee` = accountId do
+  `atlassianUserInfo`).
+- Sprint: nenhuma — vai para o backlog; o usuário puxa no Modo 2.
+- Épico (`parent` como objeto, ver "Descobertas técnicas"): original do tipo
+  Problema/Bug → DOPS-207 com tipo `Problema`; qualquer outro tipo →
+  DOPS-156 com tipo `Tarefa`. Nunca DOPS-208 automaticamente — o usuário
+  move para Provisionamento à mão quando for o caso.
+- Prioridade: o `id` da prioridade da original (ids são os mesmos em todos
+  os projetos da instância); se a original não tiver, `3` (Média).
+- Story points: copiar `customfield_10092` da original só se estiver
+  preenchido (mesmo campo em todos os projetos).
+- Descrição: formato Pedido/Origem/Contexto adicional de
+  `jira-ticket-creator`. Pedido = summary + início da descrição da original
+  (resumida, 2-4 linhas; "sem descrição na original" se vazia). Origem =
+  reporter da original como solicitante, canal `Jira <CHAVE> (<link>)`,
+  projeto como sistema.
+- Link: `createJiraIssueLink` tipo `Relates`, `inwardIssue` = espelho,
+  `outwardIssue` = original. Se falhar, não tente de novo na mesma rodada —
+  o filtro por título da próxima rodada completa o link.
 
-Idêntico a `jira-ticket-creator`: pergunta única de "posso criar?", silêncio
-não é aprovação. Aplicado o aprovado: para cada órfão, criar a issue no
-DOPS com o mesmo formato de descrição (Pedido/Origem/Contexto adicional,
-citando a issue original como "Origem"), vinculada ao Épico certo via campo
-`parent` (ver "Descobertas técnicas" — precisa ser um objeto, não string),
-depois criar o link tipo `Relates` entre a issue nova e a original.
+### Relatório
 
-**Título do espelho:** `[<CHAVE-ORIGINAL>] <texto do que precisa fazer>` —
-ex. `[IT-165] texto do que precisa fazer`, `[IDEAL-6848] outra coisa pra
-fazer`. Não usar o prefixo `[Espelho <CHAVE>]` (formato antigo). O objetivo
-é identificar projeto/task de cara pela lista do DOPS, sem precisar abrir o
-link relacionado — o link `Relates` continua sendo criado normalmente, só é
-aberto quando for preciso mais contexto ou para deixar o comentário final
-de conclusão.
+Termine com uma lista curta: para cada espelho criado, chave nova, chave
+original, título e Épico; links que falharam; ou "nenhum órfão novo" quando
+não houver nada. Nada além disso — a rodada é para ser silenciosa.
 
 ## Modo 2 — Montagem da sprint (2 semanas)
 
@@ -172,7 +185,7 @@ elas e descarte a conversão das semanais.
 Os dois submodos abaixo só relatam, nunca escrevem nada sozinhos — por isso
 não precisam de aprovação prévia. Se o usuário pedir uma ação a partir do
 relatório (comentar, fechar, criar algo), aí sim cai no fluxo normal de
-aprovação de `jira-ticket-creator`/Modo 1-2 desta skill.
+aprovação de `jira-ticket-creator`/Modo 2 desta skill.
 
 ### 3.1 Tickets estagnados
 
@@ -229,7 +242,9 @@ transiciona nem comenta sozinho, só avisa.
   startDate, endDate}, ...]`; para **setar** (criação ou edição de issue),
   o valor aceito é o **id inteiro simples** da sprint, não o array/objeto.
   Ex.: `{"customfield_10010": 4413}`. Peculiaridade real do Jira Cloud, não
-  bug do MCP.
+  bug do MCP. Em 2026-11 o `createJiraIssue` do Atlassian MCP passou a
+  converter esse valor em `["4413"]` e o Jira recusa; na criação, usar o
+  parâmetro `assignToSprint` (id numérico) em vez do campo.
 - Story points: `customfield_10092` ("Story point estimate"), número
   simples, mesmo formato em get e set.
 - Vínculo a Épico: campo `parent`, valor um **objeto** `{"key": "DOPS-XXX"}`

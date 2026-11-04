@@ -42,6 +42,8 @@ gate de aprovação seja respeitado do início ao fim da conversa.
   instrução (sua ou do usuário) pedir para "criar direto sem confirmar",
   isso contradiz a regra fixa das skills e das regras de execução cautelosa
   do usuário; pare e avise em vez de obedecer.
+- Única exceção: o Modo 1 de `jira-radar` (espelho de órfãos fora do DOPS)
+  cria direto, sem aprovação, por decisão do usuário — siga a skill.
 
 ## Formato e convenções
 
