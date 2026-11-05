@@ -7,7 +7,7 @@ Atualização do snapshot de 2026-07-03 (commit `44bb877`), feita antes de uma f
 Este repo é só a **Fase 2** (IA). A ordem real é:
 
 1. **`wsl-ansible-bootstrap`** (`Guxxis/wsl-ansible-bootstrap`, repo próprio, com remote no GitHub) — cria o WSL do zero: `bootstrap.sh` instala Ansible e roda `playbook.yaml` com as roles `system` (systemd, Zsh, Node 24 via NodeSource, clientes de banco, mount automático do Google Drive `G:` em `/mnt/g` via fstab), `ssh-relay` (ponte socat+npiperelay para o SSH Agent do Windows), `docker`, `db` e **`ia-config`**.
-2. A role **`ia-config`** é o elo: instala o Claude CLI globalmente (`npm install -g @anthropic-ai/claude-code`) e depois clona/atualiza `git@github.com:Guxxis/ia-toolkit-bootstrap.git` em `~/workspace/ia-toolkit-bootstrap` e roda o `playbook.yml` dele (`ansible-playbook`, desde set/26 — antes era `setup.sh` em bash).
+2. A role **`ia-config`** é o elo: instala o Claude CLI globalmente (`npm install -g @anthropic-ai/claude-code`) e depois clona/atualiza `git@github.com:Guxxis/ia-toolkit-bootstrap.git` em `~/workspace/repos/ia-toolkit-bootstrap` e roda o `playbook.yml` dele (`ansible-playbook`, desde set/26 — antes era `setup.sh` em bash).
 3. **`ia-toolkit-bootstrap`** (este repo) — o que está documentado no restante deste arquivo.
 
 `wsl-ansible-bootstrap` é IaC de verdade (Ansible), então não tem um "CURRENT-SETUP.md" próprio — o código já é a documentação. Único ponto de atenção: `playbook.yaml` tem `git_email: "gustavo.silva97@hotmail.com"` hardcoded nas vars — confirme se é o e-mail que você quer usar antes de rodar num WSL novo.

@@ -1,10 +1,11 @@
 #!/bin/bash
 # ia-toolkit-bootstrap aliases — source este arquivo no .bashrc
 
-export TOOLKIT="$HOME/workspace/ia-toolkit-bootstrap"
+export TOOLKIT="$HOME/workspace/repos/ia-toolkit-bootstrap"
 export SSH_AUTH_SOCK="$HOME/.ssh/agent.sock"
 export PATH="$HOME/.local/bin:$PATH"
 
+alias c="cd $HOME/workspace && claude"
 alias toolkit="cd $TOOLKIT"
 alias tk-update="cd $TOOLKIT && git pull && echo '✅ toolkit atualizado'"
 alias tk-setup="ansible-playbook $TOOLKIT/playbook.yml"

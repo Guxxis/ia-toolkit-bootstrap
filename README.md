@@ -7,9 +7,9 @@ Infraestrutura como código para o agente de IA. Versiona comportamentos (CLAUDE
 ## Instalação em novo WSL
 
 ```bash
-git clone <repo-url> ~/workspace/ia-toolkit-bootstrap
+git clone <repo-url> ~/workspace/repos/ia-toolkit-bootstrap
 OBSIDIAN_API_KEY=xxx JIRA_URL=... JIRA_USERNAME=... JIRA_API_TOKEN=... CONTEXT7_API_KEY=xxx \
-  ansible-playbook ~/workspace/ia-toolkit-bootstrap/playbook.yml
+  ansible-playbook ~/workspace/repos/ia-toolkit-bootstrap/playbook.yml
 source ~/.bashrc   # ou ~/.zshrc
 ```
 

@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo \"$(date '+%Y-%m-%d %H:%M:%S') | session_end | pwd=$(pwd)\" >> ~/workspace/ia-toolkit-bootstrap/.logs/sessions.log"
+            "command": "echo \"$(date '+%Y-%m-%d %H:%M:%S') | session_end | pwd=$(pwd)\" >> ~/workspace/repos/ia-toolkit-bootstrap/.logs/sessions.log"
           }
         ]
       }
@@ -38,7 +38,7 @@
       }
     }
   },
-  "theme": "dark",
+  "theme": "light-ansi",
   "permissions": {
     "defaultMode": "auto"
   },
