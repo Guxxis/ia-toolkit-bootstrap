@@ -29,11 +29,19 @@ ia-toolkit-bootstrap/
 │   ├── devops_senior.md
 │   └── sdd_expert.md
 ├── skills/                       # skills autorais (SKILL.md), symlinked para ~/.claude/skills/
+│   ├── daily-brief/
 │   ├── diagnostic-creator/
+│   ├── email-rules-suggest/
+│   ├── email-triage/
+│   ├── glpi-radar/
 │   ├── infra-planner/
-│   ├── jira-radar/
+│   ├── jira-radar/               # só órfãos → espelho (automático)
+│   ├── jira-saude/               # estagnados + espelhos a fechar (leitura)
+│   ├── jira-sprint/              # montagem da sprint (com aprovação)
 │   └── jira-ticket-creator/
 ├── agents/                       # subagentes (.md único) → ~/.claude/agents/*.md via playbook (copy, exceto README.md) — ver agents/README.md
+├── cron/
+│   └── run-agent.sh              # roda um agente headless (crontab instalado pelo playbook, logs em ~/workspace/temp/cron/)
 ├── rules/                        # → ~/.claude/rules/*.md (regras globais adicionais)
 │   ├── context7.md
 │   ├── execution-caution.md
@@ -78,7 +86,7 @@ Skills de terceiros/oficiais (`skill-creator`, `openspec-*`, `context7-mcp`) e p
 
 ## Adicionar novo agent
 
-Ver `agents/README.md` para a convenção de arquivo e o agent já ativo (`orquestrador-de-tickets`). A task de cópia para `~/.claude/agents/` já existe no playbook e cobre qualquer `agents/*.md` novo automaticamente (exceto `agents/README.md`) — basta soltar o arquivo e rodar `tk-setup`.
+Ver `agents/README.md` para a convenção de arquivo e os agents ativos (`agente-backoffice`, `agente-consultor`, `analista-de-incidentes`). A task de cópia para `~/.claude/agents/` já existe no playbook e cobre qualquer `agents/*.md` novo automaticamente (exceto `agents/README.md`) — basta soltar o arquivo e rodar `tk-setup`.
 
 ## Ativar uma persona
 

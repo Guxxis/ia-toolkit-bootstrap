@@ -86,6 +86,30 @@
       loop_control:
         label: "{{ item.path | basename }}"
 
+    - name: Remover agent antigo renomeado para agente-backoffice
+      file:
+        path: "{{ claude_dir }}/agents/orquestrador-de-tickets.md"
+        state: absent
+
+    - name: Agendar agentes no cron (dias úteis)
+      cron:
+        name: "{{ item.name }}"
+        minute: "{{ item.minute }}"
+        hour: "{{ item.hour }}"
+        weekday: "{{ item.weekday | default('1-5') }}"
+        job: "bash {{ toolkit_dir }}/cron/run-agent.sh {{ item.agent }} '{{ item.prompt }}'"
+      loop:
+        - { name: backoffice-radar, agent: agente-backoffice, minute: "30", hour: "7,13",
+            prompt: "Execução agendada: rode glpi-radar e depois jira-radar." }
+        - { name: consultor-briefing, agent: agente-consultor, minute: "45", hour: "7",
+            prompt: "Execução agendada: rode email-triage e depois daily-brief." }
+        - { name: consultor-triage, agent: agente-consultor, minute: "0", hour: "8-18",
+            prompt: "Execução agendada: rode email-triage." }
+        - { name: consultor-regras, agent: agente-consultor, minute: "30", hour: "16", weekday: "5",
+            prompt: "Execução agendada: rode email-rules-suggest." }
+      loop_control:
+        label: "{{ item.name }}"
+
     - name: Garantir cores/prompt básicos no .zshrc
       blockinfile:
         path: "{{ ansible_env.HOME }}/.zshrc"

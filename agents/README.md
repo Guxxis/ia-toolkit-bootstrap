@@ -4,13 +4,27 @@ Subagentes do Claude Code (`.claude/agents/*.md`) — diferente de `skills/`, ca
 
 O `playbook.yml` copia todo `agents/*.md` para `~/.claude/agents/`, **exceto este README** (task `find` com `excludes: "README.md"` + `copy`, mesma mecânica de `rules/*.md`). Para adicionar um agent novo: soltar o arquivo aqui e rodar `tk-setup` — nenhuma edição no playbook é necessária.
 
-## Agent ativo: orquestrador-de-tickets
+## Agent ativo: agente-backoffice
 
-Persona de triagem entre `jira-ticket-creator` (pedido novo) e `jira-radar`
-(varredura de órfãos fora do DOPS, montagem de sprint, tickets estagnados,
-sincronia de espelhos) — ver `orquestrador-de-tickets.md` neste diretório.
-Não redefine convenções, só decide qual skill invocar e garante o gate de
-aprovação explícita.
+Cria e padroniza tickets no DOPS — ver `agente-backoffice.md`. Automático,
+sem aprovação, só para clone/espelho (`glpi-radar`, `jira-radar`), rodando
+no cron às 07:30 e 13:30 dos dias úteis. Manual e com aprovação explícita
+para `jira-ticket-creator` (pedido novo) e `jira-sprint` (sprint).
+
+## Agent ativo: agente-consultor
+
+Avaliador do dia a dia — ver `agente-consultor.md`. Só organiza e sugere:
+`email-triage` (labels `IA/*`, de hora em hora 08h–18h), `daily-brief`
+(rascunho no Gmail às 07:45), `email-rules-suggest` (sexta
+16:30) e `jira-saude` (leitura). Única escrita: labels `IA/*` e rascunhos
+para o próprio usuário (envio é bloqueado pelo admin).
+
+## Agendamento
+
+`playbook.yml` instala o crontab chamando `cron/run-agent.sh <agente>
+<prompt>`, que roda `claude -p --agent <agente> --permission-mode dontAsk`
+liberando só as tools do frontmatter do agente (o `Bash` do backoffice vira
+só o script do `glpi-radar`). Log por agente em `~/workspace/temp/cron/`.
 
 ## Agent ativo: analista-de-incidentes
 
