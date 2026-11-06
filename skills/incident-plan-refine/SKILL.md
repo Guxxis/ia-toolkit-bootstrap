@@ -45,7 +45,7 @@ Refine com o usuário até ele aprovar o plano.
 Regra: cada etapa do plano final aprovado vira uma subtask do card de
 origem — nem mais, nem menos. Só crie depois do "pode criar" explícito.
 
-`mcp__claude_ai_Atlassian__createJiraIssue` com:
+`mcp__claude_ai_Atlassian_MCP__createJiraIssue` (`cloudId: "idealtrends.atlassian.net"`) com:
 
 - `parent`: chave do card de origem (string, ex. `"DOPS-512"`).
 - tipo de issue: Subtarefa.

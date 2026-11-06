@@ -54,6 +54,7 @@ Regras do formato:
 
 ## Postagem
 
-`mcp__claude_ai_Atlassian__addCommentToJiraIssue` na chave do card de
+`mcp__claude_ai_Atlassian_MCP__addOrEditJiraIssueComment` (sem `commentId`,
+`cloudId: "idealtrends.atlassian.net"`) na chave do card de
 origem (não numa subtask, a menos que o usuário peça). Nunca edite
 summary/descrição nem transicione status a partir desta skill.
