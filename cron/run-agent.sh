@@ -9,13 +9,18 @@ agent_file="${AGENT_DIR:-$HOME/.claude/agents}/$agent.md"
 log_dir="$HOME/workspace/temp/cron"
 mkdir -p "$log_dir"
 
-# Bash do backoffice fica restrito ao script do glpi-radar.
+# Bash de cada agente fica restrito ao script da skill dele.
+case $agent in
+  agente-backoffice) bash_rule="Bash(bash ~/.claude/skills/glpi-radar/glpi-open-tickets.sh)" ;;
+  agente-consultor) bash_rule="Bash(bash ~/.claude/skills/daily-brief/gchat-send.sh:*)" ;;
+  *) bash_rule="" ;;
+esac
 IFS=',' read -ra tools <<< "$(sed -n 's/^tools: //p' "$agent_file")"
 allowed=()
 for t in "${tools[@]}"; do
   t=$(echo "$t" | xargs)
-  [ "$t" = "Bash" ] && t="Bash(bash ~/.claude/skills/glpi-radar/glpi-open-tickets.sh)"
-  allowed+=("$t")
+  [ "$t" = "Bash" ] && t=$bash_rule
+  [ -n "$t" ] && allowed+=("$t")
 done
 
 cd "${RUN_DIR:-$HOME/workspace}" || exit 1

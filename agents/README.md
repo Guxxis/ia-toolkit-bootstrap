@@ -15,7 +15,7 @@ para `jira-ticket-creator` (pedido novo) e `jira-sprint` (sprint).
 
 Avaliador do dia a dia — ver `agente-consultor.md`. Só organiza e sugere:
 `email-triage` (labels `IA/*`, de hora em hora 08h–18h), `daily-brief`
-(rascunho no Gmail, tentado de hora em hora 09h–12h até existir o do dia), `email-rules-suggest` (sexta
+(mensagem no Google Chat via webhook, rascunho no Gmail se falhar; tentado de hora em hora 09h–12h até sair o do dia), `email-rules-suggest` (sexta
 16:30) e `jira-saude` (leitura). Única escrita: labels `IA/*` e rascunhos
 para o próprio usuário (envio é bloqueado pelo admin).
 
