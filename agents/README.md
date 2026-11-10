@@ -8,7 +8,7 @@ O `playbook.yml` copia todo `agents/*.md` para `~/.claude/agents/`, **exceto est
 
 Cria e padroniza tickets no DOPS — ver `agente-backoffice.md`. Automático,
 sem aprovação, só para clone/espelho (`glpi-radar`, `jira-radar`), rodando
-no cron às 07:30 e 13:30 dos dias úteis. Manual e com aprovação explícita
+no cron de hora em hora, 10h–17h dos dias úteis. Manual e com aprovação explícita
 para `jira-ticket-creator` (pedido novo) e `jira-sprint` (sprint).
 
 ## Agent ativo: agente-consultor
