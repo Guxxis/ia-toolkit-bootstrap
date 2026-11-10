@@ -1,6 +1,6 @@
 ---
 name: daily-brief
-description: Monta e deixa como rascunho no Gmail, endereçado ao próprio usuário, o briefing do dia útil — agenda do dia, e-mails que pedem ação, cards do DOPS na sprint, chamados GLPI/espelhos novos e espelhos a fechar — terminando com o foco do dia; às segundas inclui a visão da semana (agenda, fim da sprint, estagnados). Só lê, a única escrita é o rascunho. Roda às 07:45 no cron do agente-consultor e sob demanda quando o usuário disser "me dá o briefing", "o que eu foco hoje", "resumo da semana".
+description: Monta e deixa como rascunho no Gmail, endereçado ao próprio usuário, o briefing do dia útil — agenda do dia, e-mails que pedem ação, cards do DOPS na sprint, chamados GLPI/espelhos novos e espelhos a fechar — terminando com o foco do dia; às segundas inclui a visão da semana (agenda, fim da sprint, estagnados). Só lê, a única escrita é o rascunho. Roda de hora em hora das 09h às 12h no cron do agente-consultor (só cria se ainda não houver o do dia) e sob demanda quando o usuário disser "me dá o briefing", "o que eu foco hoje", "resumo da semana".
 ---
 
 # Daily Brief
@@ -10,6 +10,13 @@ Fontes: Gmail (labels da `email-triage`), Google Calendar, Jira via
 "Descobertas técnicas" de `jira-radar`). Os chamados GLPI entram pelos
 cards `[GLPI #<id>]` que o `agente-backoffice` cria no DOPS — esta skill não
 acessa o GLPI.
+
+## 0. Já existe o de hoje?
+
+Só em execução agendada (prompt "Execução agendada: …"): `search_threads`
+com `in:drafts subject:"[Briefing] <dd/mm>"` (data de hoje). Se achar,
+encerrar sem coletar nada, relatório "briefing de <dd/mm> já existe". Pedido
+manual sempre gera um novo.
 
 Fonte que falhar (conector fora, erro): seguir com as outras e dizer no
 briefing qual faltou. Nunca deixar de criar o rascunho por causa de uma fonte.
