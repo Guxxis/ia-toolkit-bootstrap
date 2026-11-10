@@ -13,8 +13,9 @@ acessa o GLPI.
 
 ## 0. Já existe o de hoje?
 
-Só em execução agendada (prompt "Execução agendada: …"): `search_threads`
-com `in:drafts subject:"[Briefing] <dd/mm>"` (data de hoje). Se achar,
+Só em execução agendada (prompt "Execução agendada: …"): `list_drafts`
+com `query: subject:"Briefing <dd/mm>"` (data de hoje; `search_threads` não
+vê rascunhos). Se vier algum draft,
 encerrar sem coletar nada, relatório "briefing de <dd/mm> já existe". Pedido
 manual sempre gera um novo.
 
